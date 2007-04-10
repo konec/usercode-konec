@@ -1,0 +1,12 @@
+<use name=root>
+<use name=clhep>
+
+<use name=FWCore/Framework>
+<use name=Foundation/PluginManager>
+<use name=FWCore/ParameterSet>
+
+<use name=UserCode/konec>
+
+<library file="PairAnalysis.cc" name="PairAnalysis">
+  <flags SEAL_PLUGIN_NAME="PairAnalysis">
+</library>
