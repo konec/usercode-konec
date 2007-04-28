@@ -21,12 +21,10 @@ MyRegions::MyRegions(const edm::ParameterSet& cfg)
 vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& es) const
 {
   vector<TrackingRegion* > result;
-
   Handle<SimTrackContainer> simTk;
   ev.getByLabel("g4SimHits",simTk);
   vector<SimTrack> simTracks = *(simTk.product());
   const SimTrack * myTrack = 0;
-
   float ptMax = 0.2;
   typedef  SimTrackContainer::const_iterator IP;
   for (IP ip=simTracks.begin(); ip != simTracks.end(); ip++) {
@@ -47,34 +45,40 @@ vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& 
     myTrack = &track;
   }
 
+  GlobalVector dir;
+  GlobalPoint vtx(0.,0.,0.);
   if (myTrack) {
     cout << " BEST TRACK: "
          <<" pt="<<myTrack->momentum().perp()
          <<" eta="<< myTrack->momentum().eta() << endl;
 
-    GlobalVector dir = GlobalVector(myTrack->momentum().x(),
+    dir = GlobalVector(myTrack->momentum().x(),
                                     myTrack->momentum().y(),
                                     myTrack->momentum().z()).unit();
-    float ptmin =        theRegionPSet.getParameter<double>("ptMin");
-    float dr =           theRegionPSet.getParameter<double>("originRadius");
-    float dz =           theRegionPSet.getParameter<double>("originHalfLength");
-    bool precise =       theRegionPSet.getParameter<bool>("precise");
-    GlobalPoint vtx(0.,0.,0.);
-  //  HepLorentzVector vtx =(*simVtcs)[p->vertIndex()].position();
-    for (vector<double>::const_iterator ireg = theSizes.begin(); ireg < theSizes.end(); ireg++) {
-      double deltaR = (*ireg);
-      TrackingRegion * region = 0;
-      if (deltaR > 0) {
-        region = new RectangularEtaPhiTrackingRegion( dir, vtx, ptmin,  dr, dz, deltaR, deltaR);
-      }
-      else {
-        region =  new GlobalTrackingRegion(ptmin,  dr, dz, 0., precise);
-      }
-      result.push_back(region);
+  //  vtx =(*simVtcs)[p->vertIndex()].position();
+  } else {
+    dir = GlobalVector(1.,1.,0.);
+    return result; 
+  }
+
+  float ptmin =        theRegionPSet.getParameter<double>("ptMin");
+  float dr =           theRegionPSet.getParameter<double>("originRadius");
+  float dz =           theRegionPSet.getParameter<double>("originHalfLength");
+  bool precise =       theRegionPSet.getParameter<bool>("precise");
+  for (vector<double>::const_iterator ireg = theSizes.begin(); ireg < theSizes.end(); ireg++) {
+    double deltaR = (*ireg);
+    TrackingRegion * region = 0;
+    if (deltaR > 0) {
+      region = new RectangularEtaPhiTrackingRegion( dir, vtx, ptmin,  dr, dz, deltaR, deltaR);
     }
+    else {
+      region =  new GlobalTrackingRegion(ptmin,  dr, dz, 0., precise);
+    }
+    result.push_back(region);
   }
-  else {
-    std::cout <<"no region!"<<std::endl;
-  }
+//  }
+//  else {
+//    std::cout <<"no region!"<<std::endl;
+//  }
   return result;
 }

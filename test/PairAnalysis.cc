@@ -83,6 +83,7 @@ void PairAnalysis::beginJob(const edm::EventSetup& es)
   std::string orderedName = orderedPSet.getParameter<std::string>("ComponentName");
   theGenerator = OrderedHitsGeneratorFactory::get()->create( orderedName, orderedPSet);
 
+
   edm::ParameterSet leyerPSet = orderedPSet.getParameter<edm::ParameterSet>("LayerPSet");
   theLayers = SeedingLayerSetsBuilder(leyerPSet).layers(es);
   cout <<"Number of Sets: " << theLayers.size() << endl;
