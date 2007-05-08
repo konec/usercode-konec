@@ -27,10 +27,10 @@ public:
   void checkEfficiency(const OrderedSeedingHits& candidates);
   void checkAlgoEfficiency(const ctfseeding::SeedingLayerSets& layersSets, const OrderedSeedingHits& candidates);
 
+  static void print(const SimTrack & track) ;
 private:
   unsigned int matchedHits(unsigned int trackId, const SeedingHitSet& hits);
   bool select(const SimTrack & track) const;
-  void print(const SimTrack & track) const;
 
 private:
   edm::ParameterSet theConfig;
@@ -45,7 +45,9 @@ private:
   TH1D *hEffEta_N, *hEffEta_D, *hEffAlgoEta_N, *hEffAlgoEta_D;
   TH1D *hEffPhi_N, *hEffPhi_D;
   TH1D *hPurePt_N, *hPurePt_D;
+
   TFile * rootFile;
+
 
 };
 

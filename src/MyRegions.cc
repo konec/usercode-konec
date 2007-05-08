@@ -7,25 +7,43 @@
 
 #include "SimDataFormats/Track/interface/SimTrack.h"
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
+#include "SimDataFormats/Vertex/interface/SimVertex.h"
+#include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
+
 #include "RecoTracker/TkTrackingRegions/interface/GlobalTrackingRegion.h"
 #include "RecoTracker/TkTrackingRegions/interface/RectangularEtaPhiTrackingRegion.h"
+
+#include "UserCode/konec/interface/Analysis.h"
 
 using namespace edm;
 using namespace std;
 
 MyRegions::MyRegions(const edm::ParameterSet& cfg)
   : theRegionPSet(cfg.getParameter<edm::ParameterSet>("RegionPSet")),
-    theSizes(cfg.getParameter<std::vector<double> >("deltaR"))
+    theSizes(cfg.getParameter<std::vector<double> >("deltaR")),
+    theVertexFromParticle(cfg.getParameter<bool>("useParticleVertex")),
+    theParticleId(cfg.getParameter<int>("useParticleId")),
+    thePtMinLeadingTrack(cfg.getParameter<double>("ptMinLeadingTrack"))
 {}
 
 vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& es) const
 {
   vector<TrackingRegion* > result;
+
   Handle<SimTrackContainer> simTk;
   ev.getByLabel("g4SimHits",simTk);
   vector<SimTrack> simTracks = *(simTk.product());
+
+  Handle<SimVertexContainer> simVc;
+  ev.getByLabel("g4SimHits", simVc);
+  vector<SimVertex> simVtcs = *(simVc.product());
+  int nVtx = simVtcs.size();
+  cout <<" number of vertices: " << nVtx <<endl;
+  if (nVtx>0)  cout <<" first vertex: "<< simVtcs[0].position().perp() <<endl;
+
   const SimTrack * myTrack = 0;
-  float ptMax = 0.2;
+  float ptMin = thePtMinLeadingTrack;
+  cout <<" MyRegions: "<<simTracks.size()<<" SimTracks found"<<endl;
   typedef  SimTrackContainer::const_iterator IP;
   for (IP ip=simTracks.begin(); ip != simTracks.end(); ip++) {
 
@@ -33,16 +51,21 @@ vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& 
 
     if ( track.noVertex() ) continue;
     if ( track.type() == -99) continue;
-    if ( track.vertIndex() != 0) continue;
-    if ( abs(track.type()) != 13 ) continue;
 
     float eta_gen = track.momentum().eta();
     if ( fabs(eta_gen) > 2.1 ) continue; 
 
     float pt_gen = track.momentum().perp();
-    if (pt_gen < ptMax) continue;
+    if (simVtcs[track.vertIndex()].position().perp() > 0.1) continue;
+//    if (pt_gen >5.) {
+//      Analysis::print(track);
+//      cout <<"vertex: "<<simVtcs[track.vertIndex()].position()<<endl;
+//    }
+    if ( abs(track.type()) != theParticleId ) continue;
+    if (pt_gen < ptMin) continue;
 
     myTrack = &track;
+    ptMin = pt_gen;
   }
 
   GlobalVector dir;
@@ -55,9 +78,9 @@ vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& 
     dir = GlobalVector(myTrack->momentum().x(),
                                     myTrack->momentum().y(),
                                     myTrack->momentum().z()).unit();
-  //  vtx =(*simVtcs)[p->vertIndex()].position();
+    float z_vtx = simVtcs[myTrack->vertIndex()].position().z();
+    if (theVertexFromParticle) vtx = GlobalPoint(0.,0.,z_vtx);
   } else {
-    dir = GlobalVector(1.,1.,0.);
     return result; 
   }
 

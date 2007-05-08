@@ -29,6 +29,7 @@
 
 #include "UserCode/konec/interface/Analysis.h"
 #include "TProfile.h"
+#include "TH1D.h"
 
 using namespace std;
 using namespace ctfseeding;
@@ -50,6 +51,7 @@ private:
   SeedingLayerSets theLayers;
 
   TProfile *hNumHP, *hCPU;
+  TH1D *hEtaDiff;
   
 };
 
@@ -101,16 +103,16 @@ void PairAnalysis::beginJob(const edm::EventSetup& es)
   int Nsize = 7;
   hNumHP = new TProfile("hNumHP","NTRACKS", Nsize,0.,float(Nsize),"S");
   hCPU = new TProfile("hCPU","CPU time", Nsize,0.,float(Nsize),"S");
-
+  hEtaDiff = new TH1D("hEtaDiff","hEtaDiff",100,-0.5,0.5);
 }
 
 
 void PairAnalysis::analyze(
     const edm::Event& ev, const edm::EventSetup& es)
 {
-  cout <<"*** PairAnalysisX, analyze event: " << ev.id()<<" event count:"<<++eventCount << endl;
+  cout <<"*** PairAnalysisA, analyze event: " << ev.id()<<" event count:"<<++eventCount << endl;
 
-  theAnalysis->init(ev,es);
+//  theAnalysis->init(ev,es);
 
   typedef vector<TrackingRegion* > Regions;
   Regions regions = theRegionProducer->regions(ev,es);
@@ -122,11 +124,25 @@ void PairAnalysis::analyze(
     cout <<"Region_idx: "<<iReg<<", number of seeds: " << candidates.size() << endl;
     hNumHP->Fill(float(iReg), float(candidates.size()));
 
+    if(iReg==2) {
+      unsigned int nSets = candidates.size();
+      for (unsigned int ic= 0; ic <nSets; ic++) {
+        typedef vector<ctfseeding::SeedingHit> RecHits;
+        const RecHits & hits = candidates[ic].hits();
+        float cotTheta = (hits[1].z()-hits[0].z())/(hits[1].r()-hits[0].r());
+        float eta = asinh(cotTheta);
+        float dEta = eta-region.direction().eta(); 
+        hEtaDiff->Fill(dEta);
+
+      }
+    }
+/*
     if (iReg==3) { 
       theAnalysis->init(ev,es);
       theAnalysis->checkEfficiency(candidates);
       theAnalysis->checkAlgoEfficiency(theLayers, candidates);
     }
+*/
   }
 
   for (Regions::const_iterator ir=regions.begin(); ir != regions.end(); ++ir) delete *ir;

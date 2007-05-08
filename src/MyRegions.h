@@ -19,6 +19,9 @@ public:
 private:
   edm::ParameterSet theRegionPSet;
   std::vector<double> theSizes; 
+  bool theVertexFromParticle;
+  int  theParticleId;
+  double thePtMinLeadingTrack;
 };
 
 #endif
