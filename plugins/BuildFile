@@ -1,0 +1,5 @@
+<use name=UserCode/konec>
+<library file="*.cc" name=UserCodekonecPlugins>
+  <flags EDM_PLUGIN=1>
+</library>
+

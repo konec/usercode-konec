@@ -1,10 +1,12 @@
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
-#include "FWCore/Framework/interface/Handle.h"
+#include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
+
+#include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "DataFormats/TrackingRecHit/interface/TrackingRecHit.h"
 
@@ -12,7 +14,6 @@
 #include "SimTracker/TrackerHitAssociation/interface/TrackerHitAssociator.h"
 
 //simtrack
-#include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
 #include "SimDataFormats/Track/interface/SimTrack.h"
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 
@@ -24,10 +25,12 @@
 #include "RecoTracker/TkTrackingRegions/interface/OrderedHitsGenerator.h"
 #include "RecoTracker/TkTrackingRegions/interface/GlobalTrackingRegion.h"
 
+#include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
 #include "RecoTracker/TkSeedingLayers/interface/SeedingLayerSetsBuilder.h"
 #include "RecoTracker/TkSeedingLayers/interface/SeedingLayerSets.h"
 
 #include "UserCode/konec/interface/Analysis.h"
+#include "R2DTimerObserver.h"
 #include "TProfile.h"
 #include "TH1D.h"
 
@@ -51,13 +54,17 @@ private:
   SeedingLayerSets theLayers;
 
   TProfile *hNumHP, *hCPU;
-  TH1D *hEtaDiff;
+  TH1D *hEtaDiff, *hEffReg_N, *hEffReg_D;
   
 };
 
 
 PairAnalysis::PairAnalysis(const edm::ParameterSet& conf) 
-  : theConfig(conf), theGenerator(0), eventCount(0), theAnalysis(0)
+  : theConfig(conf), 
+    theGenerator(0), 
+   theRegionProducer(0),
+    eventCount(0), 
+   theAnalysis(0) 
 {
   edm::LogInfo("PairAnalysis")<<" CTORXX";
 }
@@ -74,7 +81,6 @@ PairAnalysis::~PairAnalysis()
 
 void PairAnalysis::beginJob(const edm::EventSetup& es)
 {
-
   edm::ParameterSet regfactoryPSet =
       theConfig.getParameter<edm::ParameterSet>("RegionFactoryPSet");
   std::string regfactoryName = regfactoryPSet.getParameter<std::string>("ComponentName");
@@ -85,9 +91,11 @@ void PairAnalysis::beginJob(const edm::EventSetup& es)
   std::string orderedName = orderedPSet.getParameter<std::string>("ComponentName");
   theGenerator = OrderedHitsGeneratorFactory::get()->create( orderedName, orderedPSet);
 
+  std::string layerBuilderName = orderedPSet.getParameter<std::string>("SeedingLayers");
+  edm::ESHandle<SeedingLayerSetsBuilder> layerBuilder;
+  es.get<TrackerDigiGeometryRecord>().get(layerBuilderName, layerBuilder);
 
-  edm::ParameterSet leyerPSet = orderedPSet.getParameter<edm::ParameterSet>("LayerPSet");
-  theLayers = SeedingLayerSetsBuilder(leyerPSet).layers(es);
+  theLayers  =  layerBuilder->layers(es);
   cout <<"Number of Sets: " << theLayers.size() << endl;
   typedef SeedingLayerSets::const_iterator ISLS;
   typedef SeedingLayers::const_iterator ISL;
@@ -103,7 +111,9 @@ void PairAnalysis::beginJob(const edm::EventSetup& es)
   int Nsize = 7;
   hNumHP = new TProfile("hNumHP","NTRACKS", Nsize,0.,float(Nsize),"S");
   hCPU = new TProfile("hCPU","CPU time", Nsize,0.,float(Nsize),"S");
-  hEtaDiff = new TH1D("hEtaDiff","hEtaDiff",100,-0.5,0.5);
+  hEffReg_N = new TH1D("hEffReg_N","hEffReg_N",Nsize,0.,float(Nsize));
+  hEffReg_D = new TH1D("hEffReg_D","hEffReg_D",Nsize,0.,float(Nsize));
+//  hEtaDiff = new TH1D("hEtaDiff","hEtaDiff",100,-0.5,0.5);
 }
 
 
@@ -112,44 +122,47 @@ void PairAnalysis::analyze(
 {
   cout <<"*** PairAnalysisA, analyze event: " << ev.id()<<" event count:"<<++eventCount << endl;
 
-//  theAnalysis->init(ev,es);
+  edm::ParameterSet assPset = theConfig.getParameter<edm::ParameterSet>("AssociatorPSet");
+  TrackerHitAssociator assoc(ev, assPset);
 
   typedef vector<TrackingRegion* > Regions;
   Regions regions = theRegionProducer->regions(ev,es);
+  static R2DTimerObserver timer("**** MY TIMING REPORT ***");
 
   for (int iReg = 0, nRegions = regions.size(); iReg < nRegions; ++iReg) { 
+    cout <<"Region size: " <<  regions.size() << endl;
     const TrackingRegion & region = *regions[iReg];
 
+    timer.start();
     const OrderedSeedingHits & candidates = theGenerator->run(region,ev,es);
-    cout <<"Region_idx: "<<iReg<<", number of seeds: " << candidates.size() << endl;
+    timer.stop();
+    hCPU->Fill( float(iReg), timer.lastMeasurement().real());
+    cout <<"Region_idx: "<<iReg<<", number of seeds: " << candidates.size() <<endl;
     hNumHP->Fill(float(iReg), float(candidates.size()));
 
-    if(iReg==2) {
-      unsigned int nSets = candidates.size();
-      for (unsigned int ic= 0; ic <nSets; ic++) {
-        typedef vector<ctfseeding::SeedingHit> RecHits;
-        const RecHits & hits = candidates[ic].hits();
-        float cotTheta = (hits[1].z()-hits[0].z())/(hits[1].r()-hits[0].r());
-        float eta = asinh(cotTheta);
-        float dEta = eta-region.direction().eta(); 
-        hEtaDiff->Fill(dEta);
+    hEffReg_D->Fill(float(iReg)); if(candidates.size() > 0)hEffReg_N->Fill(float(iReg));
 
-      }
-    }
-/*
-    if (iReg==3) { 
-      theAnalysis->init(ev,es);
+//    if(iReg==2) {
+//      unsigned int nSets = candidates.size();
+//      for (unsigned int ic= 0; ic <nSets; ic++) {
+//        typedef vector<ctfseeding::SeedingHit> RecHits;
+//        const RecHits & hits = candidates[ic].hits();
+//        float cotTheta = (hits[1].z()-hits[0].z())/(hits[1].r()-hits[0].r());
+//        float eta = asinh(cotTheta);
+//        float dEta = eta-region.direction().eta(); 
+//        hEtaDiff->Fill(dEta);
+//      }
+//    }
+    if (iReg==6) { 
+      theAnalysis->init(ev,es,&assoc);
       theAnalysis->checkEfficiency(candidates);
       theAnalysis->checkAlgoEfficiency(theLayers, candidates);
     }
-*/
   }
 
   for (Regions::const_iterator ir=regions.begin(); ir != regions.end(); ++ir) delete *ir;
 
 }
 
-#include "PluginManager/ModuleDef.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(PairAnalysis);
 

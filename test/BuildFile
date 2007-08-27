@@ -1,12 +1,20 @@
 <use name=root>
-<use name=clhep>
 
 <use name=FWCore/Framework>
 <use name=Foundation/PluginManager>
+<use name=SimDataFormats/TrackerDigiSimLink>
+<use name=SimTracker/TrackerHitAssociation>
 <use name=FWCore/ParameterSet>
-
+<use name=DataFormats/L1GlobalMuonTrigger>
+<use name=CondFormats/L1TObjects>
+<use name=Utilities/Timing>
 <use name=UserCode/konec>
 
-<library file="PairAnalysis.cc" name="PairAnalysis">
-  <flags SEAL_PLUGIN_NAME="PairAnalysis">
+<library file="PairAnalysis.cc" name=PairAnalysis>
+  <flags EDM_PLUGIN=1>
 </library>
+
+#<library file="L1Seeding.cc" name=L1Seeding>
+#  <flags EDM_PLUGIN=1>
+#</library>
+

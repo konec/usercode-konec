@@ -22,7 +22,10 @@ public:
 
   Analysis(const edm::ParameterSet& conf);
   ~Analysis();
-  void init(const edm::Event& ev, const edm::EventSetup& es);
+
+  const SimTrack * bestTrack(const edm::Event& ev) const;
+
+  void init(const edm::Event& ev, const edm::EventSetup& es, TrackerHitAssociator * ass);
 
   void checkEfficiency(const OrderedSeedingHits& candidates);
   void checkAlgoEfficiency(const ctfseeding::SeedingLayerSets& layersSets, const OrderedSeedingHits& candidates);

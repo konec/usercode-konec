@@ -1,7 +1,7 @@
 #include "UserCode/konec/interface/Analysis.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
-#include "FWCore/Framework/interface/Handle.h"
+#include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -9,23 +9,17 @@
 #include "SimTracker/TrackerHitAssociation/interface/TrackerHitAssociator.h"
 
 //simtrack
-#include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
 #include "SimDataFormats/Track/interface/SimTrack.h"
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
-#include "RecoTracker/TkHitPairs/interface/LayerWithHits.h"
-
-#include "DataFormats/Math/interface/Vector3D.h"
-#include "DataFormats/Math/interface/Point3D.h"
-#include "DataFormats/Math/interface/Error.h"
+#include "SimDataFormats/Vertex/interface/SimVertex.h"
+#include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
 
 #include "RecoTracker/TkTrackingRegions/interface/RectangularEtaPhiTrackingRegion.h"
 #include "RecoTracker/TkTrackingRegions/interface/GlobalTrackingRegion.h"
 
+#include "RecoTracker/TkSeedingLayers/interface/OrderedSeedingHits.h"
 #include "RecoTracker/TkSeedingLayers/interface/SeedingLayerSets.h"
 #include "RecoTracker/TkSeedingLayers/interface/SeedingHitSet.h"
-
-
-#include "RecoTracker/TkSeedingLayers/interface/OrderedSeedingHits.h"
 
 #include "TFile.h"
 #include "TH1D.h"
@@ -68,7 +62,48 @@ Analysis::~Analysis()
 }
 
 //----------------------------------------------------------------------------------------
-void Analysis::init(const edm::Event& ev, const edm::EventSetup& es) 
+const SimTrack * Analysis::bestTrack(const edm::Event& ev) const
+{
+
+  Handle<SimTrackContainer> simTk;
+  ev.getByLabel("g4SimHits",simTk);
+  vector<SimTrack> simTracks = *(simTk.product());
+
+  Handle<SimVertexContainer> simVc;
+  ev.getByLabel("g4SimHits", simVc);
+  vector<SimVertex> simVtcs = *(simVc.product());
+
+  const SimTrack * myTrack = 0;
+
+  float ptMin = theConfig.getParameter<double>("ptMinLeadingTrack");
+  int particleId = theConfig.getParameter<int>("useParticleId");
+
+  cout <<" MyRegions: "<<simTracks.size()<<" SimTracks found"<<endl;
+  typedef  SimTrackContainer::const_iterator IP;
+  for (IP ip=simTracks.begin(); ip != simTracks.end(); ip++) {
+
+    const SimTrack & track = (*ip);
+
+    if ( track.noVertex() ) continue;
+    if ( track.type() == -99) continue;
+
+    float eta_gen = track.momentum().eta();
+    if ( fabs(eta_gen) > 2.1 ) continue;
+
+    float pt_gen = track.momentum().perp();
+    if (simVtcs[track.vertIndex()].position().perp() > 0.1) continue;
+    if ( abs(track.type()) != particleId) continue;
+    if (pt_gen < ptMin) continue;
+
+    myTrack = &track;
+    ptMin = pt_gen;
+  }
+
+  return myTrack;
+}
+
+//----------------------------------------------------------------------------------------
+void Analysis::init(const edm::Event& ev, const edm::EventSetup& es, TrackerHitAssociator * ass) 
 {
   theEvent = &ev;
   theSetup = &es;
@@ -78,9 +113,10 @@ void Analysis::init(const edm::Event& ev, const edm::EventSetup& es)
   theSimTracks = *(simTk.product());
   cout <<" Analysis has: " << theSimTracks.size()<<" tracks"<<endl;
 
-  if (theAssociator) delete theAssociator;
-  edm::ParameterSet asset = theConfig.getParameter<edm::ParameterSet>("AssociatorPSet");
-  theAssociator = new TrackerHitAssociator(ev,asset);
+  theAssociator = ass;
+//  if (theAssociator) delete theAssociator;
+//  edm::ParameterSet asset = theConfig.getParameter<edm::ParameterSet>("AssociatorPSet");
+//  theAssociator = new TrackerHitAssociator(ev,asset);
 }
 
 //----------------------------------------------------------------------------------------
@@ -169,10 +205,9 @@ unsigned int Analysis::matchedHits(unsigned int trackId, const SeedingHitSet& hi
   typedef vector<ctfseeding::SeedingHit> RecHits;
   const RecHits & hits = hitset.hits(); 
   for (RecHits::const_iterator it = hits.begin(); it != hits.end(); it++) {
-    const TrackingRecHit & hit = *(it->RecHit());
-    //typedef vector<unsigned int> SimTrackIds;
+    const TrackingRecHit * hit = *(it);
     typedef vector<SimHitIdpr> SimTrackIds;
-    SimTrackIds simTrackIds = theAssociator->associateHitId(hit);
+    SimTrackIds simTrackIds = theAssociator->associateHitId(*hit);
     bool ok = false;
     for (SimTrackIds::const_iterator ist = simTrackIds.begin(); ist != simTrackIds.end(); ist++) {
       if ( (*ist).first == trackId) ok = true;

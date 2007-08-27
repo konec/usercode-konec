@@ -1,5 +1,3 @@
-<flags SEAL_PLUGIN_NAME="UserCodekonec">
-
 <use name=root>
 <use name=FWCore/Framework>
 <use name=Foundation/PluginManager>
@@ -12,7 +10,6 @@
   <use name=root>
   <use name=FWCore/Framework>
   <use name=Foundation/PluginManager>
-  <use name=RecoTracker/TkHitPairs>
-  <use name=SimTracker/TrackerHitAssociation>
   <use name=SimDataFormats/TrackerDigiSimLink>
+  <use name=SimTracker/TrackerHitAssociation>
 </export>
