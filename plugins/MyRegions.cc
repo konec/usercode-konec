@@ -69,7 +69,7 @@ vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& 
 
     float tr_x = simVtcs[track.vertIndex()].position().x();
     float tr_y = simVtcs[track.vertIndex()].position().y();
-    if ( sqrt(sqr(tr_x-x_vtx)+sqr(tr_y-y_vtx)) > 0.1) continue;
+    if ( sqrt(sqr(tr_x-x_vtx)+sqr(tr_y-y_vtx)) > 1.0) continue;
 
     myTrack = &track;
     ptMin = pt_gen;
