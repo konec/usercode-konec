@@ -12,7 +12,7 @@
   file.ls();
 
 
-/*--------------------
+//--------------------
   MyDefaultStyle->cd();
   cNumHP= new TCanvas("cNumHP","HP multiplicity",-2);
   gPad->SetLeftMargin(0.14);
@@ -30,7 +30,7 @@
 //  h->Print("all");
   cNumHP->Print(0,".eps");
   h->Delete();
-*/
+
 
 //--------------------
   MyDefaultStyle->cd();
@@ -53,6 +53,17 @@
   h->Print("all");
   cCPU->Print(0,".eps");
   h->Delete();
+
+//--------------------
+  MyDefaultStyle->cd();
+  gStyle->SetOptStat(101110);
+  cCPUDist = new TCanvas("cCPUDist","cCPUDist",-2);
+  hCPUDist->SetXTitle("real time [s]");
+  hCPUDist->SetYTitle("#events (arbitrary units)");
+  hCPUDist->SetLineWidth(3);
+  hCPUDist->DrawCopy();
+  cCPUDist.Print(0,".eps");
+  gStyle->SetOptStat(0);
 
 //--------------------
 
@@ -81,6 +92,29 @@
   lab->Draw();
   cEfficPt.Print(0,".eps");
 
+//--------------------
+  MyDefaultStyle->cd();
+  cEfficEta = new TCanvas("cEfficEta","cEfficEta",-2);
+//  hEffEta_N->Rebin(4);
+//  hEffEta_D->Rebin(4);
+  TH1D * heffEta = DivideErr(hEffEta_N,hEffEta_D,"hEffic","B");
+  TH1D * heffEtaAlgo = DivideErr(hEffAlgoEta_N,hEffAlgoEta_D,"hEtaAlgo","B");
+  heffEta->SetXTitle("p_{T} [GeV/c]");
+  heffEta->SetYTitle("efficiency");
+  heffEta->SetMarkerStyle(25);
+  heffEta->SetMarkerColor(4);
+
+  heffEta->SetMinimum(0.2);
+  heffEta->SetMaximum(1.02);
+  heffEta->SetXTitle("eta ");
+  heffEta->SetYTitle("efficiency");
+  heffEta->DrawCopy("E");
+
+  heffEtaAlgo->SetMarkerColor(2);
+  heffEtaAlgo->SetMarkerStyle(20);
+  heffEtaAlgo->DrawCopy("E same");
+
+  cEfficEta.Print(0,".eps");
 //--------------------
 
   MyDefaultStyle->cd();
@@ -113,17 +147,6 @@ goto end;
 
 
 
-  MyDefaultStyle->cd();
-  cEfficEta = new TCanvas("cEfficEta","cEfficEta",-2);
-//  hEffEta_N->Rebin(4);
-//  hEffEta_D->Rebin(4);
-  TH1D * heffEta = DivideErr(hEffEta_N,hEffEta_D,"hEffic","B");
-  heffEta->SetMinimum(0.5);
-  heffEta->SetMaximum(1.02);
-  heffEta->SetXTitle("eta ");
-  heffEta->SetYTitle("efficiency");
-  heffEta->DrawCopy("E");
-  cEfficEta.Print(0,".eps");
   
 end:
 

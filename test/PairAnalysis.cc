@@ -55,6 +55,7 @@ private:
 
   TProfile *hNumHP, *hCPU;
   TH1D *hEtaDiff, *hEffReg_N, *hEffReg_D;
+  TH1D *hCPUDist;
   
 };
 
@@ -114,6 +115,7 @@ void PairAnalysis::beginJob(const edm::EventSetup& es)
   hEffReg_N = new TH1D("hEffReg_N","hEffReg_N",Nsize,0.,float(Nsize));
   hEffReg_D = new TH1D("hEffReg_D","hEffReg_D",Nsize,0.,float(Nsize));
 //  hEtaDiff = new TH1D("hEtaDiff","hEtaDiff",100,-0.5,0.5);
+  hCPUDist = new TH1D("hCPUDist","hCPUDist",60,0.,0.03);
 }
 
 
@@ -125,21 +127,46 @@ void PairAnalysis::analyze(
   edm::ParameterSet assPset = theConfig.getParameter<edm::ParameterSet>("AssociatorPSet");
   TrackerHitAssociator assoc(ev, assPset);
 
+
+  //
+  // load hits from disk into memory
+  //
+  typedef SeedingLayerSets::const_iterator ISLS;
+  typedef SeedingLayers::const_iterator ISL;
+  GlobalTrackingRegion r;
+  for (ISLS isls =theLayers.begin(); isls != theLayers.end(); isls++) {
+    for (ISL isl = isls->begin(); isl != isls->end(); isl++) r.hits(ev,es,&(*isl));
+  }
+
+
+  // 
+  // get regions from producer
+  //
   typedef vector<TrackingRegion* > Regions;
   Regions regions = theRegionProducer->regions(ev,es);
+
+
+  //
+  // for time measurement
+  //
   static R2DTimerObserver timer("**** MY TIMING REPORT ***");
 
   for (int iReg = 0, nRegions = regions.size(); iReg < nRegions; ++iReg) { 
-    cout <<"Region size: " <<  regions.size() << endl;
     const TrackingRegion & region = *regions[iReg];
 
+    //
+    // run generator
+    //
     timer.start();
     const OrderedSeedingHits & candidates = theGenerator->run(region,ev,es);
     timer.stop();
-    hCPU->Fill( float(iReg), timer.lastMeasurement().real());
-    cout <<"Region_idx: "<<iReg<<", number of seeds: " << candidates.size() <<endl;
-    hNumHP->Fill(float(iReg), float(candidates.size()));
 
+    //
+    // fil histograms
+    // 
+    cout <<"Region_idx: "<<iReg<<", number of seeds: " << candidates.size() <<endl;
+    hCPU->Fill( float(iReg), timer.lastMeasurement().real());
+    hNumHP->Fill(float(iReg), float(candidates.size()));
     hEffReg_D->Fill(float(iReg)); if(candidates.size() > 0)hEffReg_N->Fill(float(iReg));
 
 //    if(iReg==2) {
@@ -153,14 +180,21 @@ void PairAnalysis::analyze(
 //        hEtaDiff->Fill(dEta);
 //      }
 //    }
-    if (iReg==6) { 
+
+    //
+    // analysis for particular region
+    //
+    if (iReg== (int)regions.size()-1) { 
       theAnalysis->init(ev,es,&assoc);
       theAnalysis->checkEfficiency(candidates);
       theAnalysis->checkAlgoEfficiency(theLayers, candidates);
+      hCPUDist->Fill(timer.lastMeasurement().real());
     }
   }
 
   for (Regions::const_iterator ir=regions.begin(); ir != regions.end(); ++ir) delete *ir;
+
+
 
 }
 

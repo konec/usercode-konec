@@ -62,7 +62,7 @@ vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& 
     if ( abs(track.type()) != theParticleId ) continue;
 
     float eta_gen = track.momentum().eta();
-    if ( fabs(eta_gen) > 2.1 ) continue; 
+    if ( fabs(eta_gen) > 2.5 ) continue; 
 
     float pt_gen = track.momentum().perp();
     if (pt_gen < ptMin) continue;
@@ -91,8 +91,7 @@ vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& 
       GlobalPoint(x_vtx,y_vtx, simVtcs[myTrack->vertIndex()].position().z())
     : GlobalPoint (x_vtx,y_vtx,z_vtx);
 
-//  float ptmin = (theVertexFromParticle)? ptMin : theRegionPSet.getParameter<double>("ptMin");
-  float ptmin = 5.;
+  float ptmin = (theVertexFromParticle)? ptMin : theRegionPSet.getParameter<double>("ptMin");
   float dr =           theRegionPSet.getParameter<double>("originRadius");
   float dz =           theRegionPSet.getParameter<double>("originHalfLength");
   bool precise =       theRegionPSet.getParameter<bool>("precise");
