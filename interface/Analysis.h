@@ -13,6 +13,7 @@ class TProfile;
 
 
 #include <vector>
+#include <string>
 
 namespace edm { class Event; class EventSetup; } 
 
@@ -28,12 +29,15 @@ public:
   void init(const edm::Event& ev, const edm::EventSetup& es, TrackerHitAssociator * ass);
 
   void checkEfficiency(const OrderedSeedingHits& candidates);
-  void checkAlgoEfficiency(const ctfseeding::SeedingLayerSets& layersSets, const OrderedSeedingHits& candidates);
+  void checkAlgoEfficiency1(const ctfseeding::SeedingLayerSets&, const OrderedSeedingHits& );
+  void checkAlgoEfficiency2(const ctfseeding::SeedingLayerSets&, const OrderedSeedingHits& );
 
   static void print(const SimTrack & track) ;
+  static std::string print(const ctfseeding::SeedingHit & hit);
 private:
   unsigned int matchedHits(unsigned int trackId, const SeedingHitSet& hits);
   bool select(const SimTrack & track) const;
+  bool compareHitSets(const SeedingHitSet& hits1, const SeedingHitSet& hits2) const;
 
 private:
   edm::ParameterSet theConfig;

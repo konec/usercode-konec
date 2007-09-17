@@ -187,7 +187,7 @@ void PairAnalysis::analyze(
     if (iReg== (int)regions.size()-1) { 
       theAnalysis->init(ev,es,&assoc);
       theAnalysis->checkEfficiency(candidates);
-      theAnalysis->checkAlgoEfficiency(theLayers, candidates);
+      theAnalysis->checkAlgoEfficiency2(theLayers, candidates);
       hCPUDist->Fill(timer.lastMeasurement().real());
     }
   }

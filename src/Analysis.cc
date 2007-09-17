@@ -20,6 +20,7 @@
 #include "RecoTracker/TkSeedingLayers/interface/OrderedSeedingHits.h"
 #include "RecoTracker/TkSeedingLayers/interface/SeedingLayerSets.h"
 #include "RecoTracker/TkSeedingLayers/interface/SeedingHitSet.h"
+#include "AnalysisOrderedHitsInLayers.h"
 
 #include "TFile.h"
 #include "TH1D.h"
@@ -120,7 +121,7 @@ void Analysis::init(const edm::Event& ev, const edm::EventSetup& es, TrackerHitA
 }
 
 //----------------------------------------------------------------------------------------
-void Analysis::checkAlgoEfficiency(const SeedingLayerSets &layersSets, const OrderedSeedingHits& candidates)
+void Analysis::checkAlgoEfficiency1(const SeedingLayerSets &layersSets, const OrderedSeedingHits& candidates)
 {
   for (SeedingLayerSets::const_iterator ils = layersSets.begin(); ils != layersSets.end(); ils++) {
   const vector<SeedingLayer> & layers = (*ils);
@@ -159,6 +160,63 @@ void Analysis::checkAlgoEfficiency(const SeedingLayerSets &layersSets, const Ord
       if(matched) hEffAlgoEta_N->Fill(eta_gen);
     }
   }
+  }
+}
+
+//-----------------------------------------------------------------------------------------
+void Analysis::checkAlgoEfficiency2(const SeedingLayerSets &layersSets, const OrderedSeedingHits& candidates)
+{
+  typedef  SimTrackContainer::const_iterator IP;
+  for (IP ip=theSimTracks.begin(); ip != theSimTracks.end(); ip++) {
+
+    const SimTrack & track = (*ip);
+    bool selected = select(track);
+    if (!selected) continue;
+    float eta_gen = track.momentum().eta();
+    float pt_gen = track.momentum().perp();
+
+    for (SeedingLayerSets::const_iterator ils=layersSets.begin(); ils!=layersSets.end(); ils++) {
+      const SeedingLayers & layers = (*ils);
+      AnalysisOrderedHitsInLayers hitsInLayers(layers, *theEvent, *theSetup);
+
+//      if (!hitsInLayers.onlySingleHits()) continue;
+
+      vector<SeedingHitSet> layerHitSets;
+      while ( hitsInLayers.next() ) { 
+
+        SeedingHitSet layerHitSet = hitsInLayers.getHitSet();
+        unsigned int  nmatched = matchedHits(track.trackId(), layerHitSet.hits());
+        if (nmatched == layerHitSet.size() ) layerHitSets.push_back(layerHitSet);
+//        cout <<"matched hits: " << nmatched << endl;
+//        cout <<" Layer Hits : " <<endl;
+//        for (int i=0; i<layerHitSet.size();i++) cout << print(layerHitSet.hits()[i])<<endl;
+      }
+
+      bool matched = false;
+      if (layerHitSets.size() < 1) continue;
+      if (layerHitSets.size() > 1) continue;
+
+      for (vector<SeedingHitSet>::const_iterator it = layerHitSets.begin();
+           it != layerHitSets.end(); it++) {
+        const SeedingHitSet & layerHitSet = *it;
+        unsigned int nSets = candidates.size();
+        for  (unsigned int ic= 0; ic <nSets; ic++) {
+           SeedingHitSet candidHits =  candidates[ic];
+           if ( compareHitSets(layerHitSet, candidates[ic]) ) matched = true;
+         }
+      }
+
+      // pt efficiency
+      if (fabs(eta_gen) < 2.1) {
+        hEffAlgoPt_D->Fill(pt_gen);
+        if(matched) hEffAlgoPt_N->Fill(pt_gen);
+      }
+      // eta efficiency
+      if (pt_gen > 3.0) {
+        hEffAlgoEta_D->Fill(eta_gen);
+        if(matched) hEffAlgoEta_N->Fill(eta_gen);
+      }
+    }
   }
 }
 
@@ -216,8 +274,21 @@ unsigned int Analysis::matchedHits(unsigned int trackId, const SeedingHitSet& hi
   }
   return nmatched;
 }
-//----------------------------------------------------------------------------------------
 
+//----------------------------------------------------------------------------------------
+bool Analysis::compareHitSets(const SeedingHitSet& hits1, const SeedingHitSet& hits2) const
+{
+  unsigned int size = hits1.size();
+  if (size != hits2.size() ) return false;
+  for (unsigned int i = 0; i < size; ++i) {
+    const TrackingRecHit* trh1 = hits1[i];
+    const TrackingRecHit* trh2 = hits2[i];
+    if (trh1 != trh2) return false;
+  }
+  return true; 
+} 
+
+//----------------------------------------------------------------------------------------
 bool Analysis::select(const SimTrack & track) const
 {
   if ( track.noVertex() ) return false;
@@ -245,3 +316,11 @@ void Analysis::print(const SimTrack & track)
           << endl;
 
 }
+//----------------------------------------------------------------------------------------
+std::string Analysis::print(const SeedingHit & hit) 
+{
+  ostringstream str; 
+  str <<"r="<<hit.r() <<" phi="<<hit.phi()<<" z="<<hit.z();
+  return str.str();
+}
+
