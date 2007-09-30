@@ -11,12 +11,14 @@ class TH1D;
 class TFile;
 class TProfile;
 
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
+#include "DataFormats/TrackReco/interface/Track.h"
+
 
 #include <vector>
 #include <string>
 
 namespace edm { class Event; class EventSetup; } 
-
 
 class Analysis {
 public:
@@ -28,6 +30,7 @@ public:
 
   void init(const edm::Event& ev, const edm::EventSetup& es, TrackerHitAssociator * ass);
 
+  void checkEfficiency(const reco::TrackCollection & tracks);
   void checkEfficiency(const OrderedSeedingHits& candidates);
   void checkAlgoEfficiency1(const ctfseeding::SeedingLayerSets&, const OrderedSeedingHits& );
   void checkAlgoEfficiency2(const ctfseeding::SeedingLayerSets&, const OrderedSeedingHits& );

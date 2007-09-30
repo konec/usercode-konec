@@ -36,9 +36,11 @@
 #include "TH1D.h"
 
 
-#include "DataFormats/L1GlobalMuonTrigger/interface/L1MuRegionalCand.h"
 #include "CondFormats/L1TObjects/interface/L1MuTriggerScales.h"
 #include "CondFormats/DataRecord/interface/L1MuTriggerScalesRcd.h"
+#include "DataFormats/L1GlobalMuonTrigger/interface/L1MuRegionalCand.h"
+#include "DataFormats/L1GlobalMuonTrigger/interface/L1MuGMTReadoutCollection.h"
+
 
 
 #include "R2DTimerObserver.h"
@@ -56,8 +58,8 @@ public:
   virtual void endJob() { }
 private:
   float deltaPhi(float phi1, float phi2) const;
-  float getPt(float phi0, float phiL1, float eta)const;
-  float getBending(float eta, float pt) const; 
+  float getPt(float phi0, float phiL1, float eta, float charge) const;
+  float getBending(float eta, float pt, float charge) const; 
   void param(float eta, float &p1, float& p2) const;
 private:
   edm::ParameterSet theConfig;
@@ -68,16 +70,19 @@ private:
   SeedingLayerSets theLayers;
 
   TProfile *hNumHP;
+  TProfile *hDPhiL1[21];
   TH1D *hCPU;
   TH1D *hEtaDiff, *hPhiDiff, *hPt;
-  TH1D *hEtaRPC, *hPhiRPC;
+  TH1D *hEta, *hPhi;
+  TH1D *hCharge;
+  TH1D *hDphiTEST;
   R2DTimerObserver * theTimer;
   
 };
 
 
 L1Seeding::L1Seeding(const edm::ParameterSet& conf) 
-  : theConfig(conf), theGenerator(0), eventCount(0), theAnalysis(0),
+  : theConfig(conf), theGenerator(0), theRegionProducer(0), eventCount(0), theAnalysis(0),
     theTimer(0)
 {
   edm::LogInfo("L1Seeding")<<" CTORXX";
@@ -98,10 +103,12 @@ L1Seeding::~L1Seeding()
 void L1Seeding::beginJob(const edm::EventSetup& es)
 {
 
+/*
   edm::ParameterSet regfactoryPSet =
       theConfig.getParameter<edm::ParameterSet>("RegionFactoryPSet");
   std::string regfactoryName = regfactoryPSet.getParameter<std::string>("ComponentName");
   theRegionProducer = TrackingRegionProducerFactory::get()->create(regfactoryName,regfactoryPSet);
+*/
 
   edm::ParameterSet orderedPSet =
       theConfig.getParameter<edm::ParameterSet>("OrderedHitsFactoryPSet");
@@ -125,14 +132,28 @@ void L1Seeding::beginJob(const edm::EventSetup& es)
 
   edm::ParameterSet apset = theConfig.getParameter<edm::ParameterSet>("AnalysisPSet");
   theAnalysis = new Analysis(apset);
+
   int Nsize = 7;
   hNumHP = new TProfile("hNumHP","NTRACKS", Nsize,0.,float(Nsize),"S");
   hCPU = new TH1D ("hCPU","hCPU",20,0.,0.05);
   hEtaDiff = new TH1D("hEtaDiff","hEtaDiff",100,-0.15,0.15);
-  hEtaRPC = new TH1D("hEtaRPC","hEtaRPC",100,-1.2,1.2);
-  hPhiRPC = new TH1D("hPhiRPC","hPhiRPC",1000,-1.,7.);
-  hPhiDiff = new TH1D("hPhiDiff","hPhiDiff",100, -0.35,0.35);
-  hPt = new TH1D("hPt","hPt",100,0.,20.);
+  hPhiDiff = new TH1D("hPhiDiff","hPhiDiff",100, -0.2,0.2);
+  hEta = new TH1D("hEta","hEta",100,-0.2,2.5);
+  hPhi = new TH1D("hPhi","hPhi",1000,-1.,7.);
+  hPt = new TH1D("hPt","hPt",100,0.,25.);
+  hCharge = new TH1D("hCharge","hCharge",5,-2.5,2.5);
+  TProfile hTmp("hTmp","Fit",96,4.5,100.5);
+
+  hDphiTEST = new TH1D("hDphiTEST","hDphiTEST",100,-0.5, 0.);
+  
+
+  char name[80];
+  for (int ieta=0; ieta <=20; ieta++) {
+    sprintf(name,"hDPhiL1_%d",ieta);
+    hDPhiL1[ieta] = new TProfile(hTmp);
+    hDPhiL1[ieta]->SetNameTitle(name,name);
+  }
+
 }
 
 
@@ -147,86 +168,96 @@ void L1Seeding::analyze(
   Analysis::print(*track);
   float phi_gen = track->momentum().phi();
   float eta_gen = track->momentum().eta();
+  float pt_gen  = track->momentum().perp();
 
-  edm::ESHandle< L1MuTriggerScales > trigscales_h;
-  es.get< L1MuTriggerScalesRcd >().get( trigscales_h );
-  const L1MuTriggerScales* theTriggerScales = trigscales_h.product(); 
+  int charge_gen = (track->type() == 13) ? -1 : 1; 
 
   edm::Handle< edm::DetSetVector<PixelDigi> > digiCollection;
   ev.getByType( digiCollection);
 
-  std::vector<edm::Handle<std::vector<L1MuRegionalCand> > > alldata;
-  ev.getManyByType(alldata);
-  std::vector<edm::Handle<std::vector<L1MuRegionalCand> > >::iterator it;
-  TrackingRegion * region = 0;
-  for(it=alldata.begin(); it!=alldata.end(); it++) {
-    edm::Provenance const* prov = it->provenance();
-    if(prov->productInstanceName() == "RPCb") {
-      std::vector<L1MuRegionalCand> l1rpc = *(it->product());
-      cout <<" numvber of muons: " << l1rpc.size() << endl;
-      if (l1rpc.size() > 0) {
-        L1MuRegionalCand & muon = l1rpc.front();
-        cout <<" is Empty: " << muon.empty() << endl;
-        if (muon.empty()) break;
-        muon.setPhiValue( theTriggerScales->getPhiScale()->getLowEdge(muon.phi_packed()) );
-        muon.setPtValue(  theTriggerScales->getPtScale()->getLowEdge(muon.pt_packed()) );
-        muon.setEtaValue( theTriggerScales->getRegionalEtaScale(muon.type_idx())->getCenter(muon.eta_packed()) );
-        cout <<" pT: " << muon.ptValue() << " coded: "<<muon.pt_packed() << endl;
-        cout <<" eta: " << muon.etaValue() << " coded: "<<muon.eta_packed()<< endl;
-        cout <<" phi: " << muon.phiValue() << " coded: "<<muon.phi_packed() <<endl;
-        hEtaRPC->Fill(muon.etaValue());
-        hPhiRPC->Fill(muon.phiValue());
+  // Get GMTReadoutCollection
 
-//        float phi_rec = muon.phiValue()-getBending(muon.etaValue(), 10.); 
-//        hPhiDiff->Fill(phi_rec-phi_gen);
-//        hEtaDiff->Fill(eta_gen-muon.etaValue());
+  edm::Handle<L1MuGMTReadoutCollection> gmtrc_handle;
+  ev.getByLabel("l1GmtEmulDigis",gmtrc_handle);
+  L1MuGMTReadoutCollection const* gmtrc = gmtrc_handle.product();
+  vector<L1MuGMTReadoutRecord> gmt_records = gmtrc->getRecords();
+  vector<L1MuGMTReadoutRecord>::const_iterator igmtrr;
 
-        float dx = cos(muon.phiValue());
-        float dy = sin(muon.phiValue());
-        float dz = sinh(muon.etaValue());
-        GlobalVector dir(dx,dy,dz);
-        GlobalPoint vtx(0.,0.,0.);
+  for(igmtrr=gmt_records.begin(); igmtrr!=gmt_records.end(); igmtrr++) {
+    vector<L1MuGMTExtendedCand>::const_iterator gmt_iter;
+    vector<L1MuGMTExtendedCand> exc = igmtrr->getGMTCands();
+    if (exc.size() <= 0) continue;
+    L1MuGMTExtendedCand & muon = exc.front();
 
-        cout <<"GlobalVector: phi:" << dir.phi()<<" eta:"<<dir.eta()<<endl;
+//      bxg[igmt]=(*gmt_iter).bx();
+//      ptg[igmt]=(*gmt_iter).ptValue();
+//      chag[igmt]=(*gmt_iter).charge();
+//      etag[igmt]=(*gmt_iter).etaValue();
+//      phig[igmt]=(*gmt_iter).phiValue();
+//      qualg[igmt]=(*gmt_iter).quality();
+//      detg[igmt]=(*gmt_iter).detector();
+//      rankg[igmt]=(*gmt_iter).rank();
+//      isolg[igmt]=(*gmt_iter).isol();
+//      mipg[igmt]=(*gmt_iter).mip();
+//      int data = (*gmt_iter).getDataWord();
 
-      //  float pt_rec = getPt(phi_gen, muon.phiValue(), muon.etaValue());
-        RectangularEtaPhiTrackingRegion region( dir, vtx, 10.,  0.1, 16., 0.15, 0.35);
+    float phi_rec = muon.phiValue()+0.021817;
+    float phi_exp = phi_gen+getBending(eta_gen, pt_gen, charge_gen);
+    hPhiDiff->Fill(deltaPhi(phi_rec,phi_exp));
+    hEta->Fill(fabs(muon.etaValue()));
+    int ieta = min(20, int(fabs(muon.etaValue()*10.)));
+    hDPhiL1[ieta]->Fill(pt_gen, charge_gen*deltaPhi(phi_gen,phi_rec)); 
 
-        theTimer->start();
-        const OrderedSeedingHits & candidates = theGenerator->run(region,ev,es);
-        theTimer->stop();
-        cout << "TIMING IS: (real)" << theTimer->lastMeasurement().real() << endl;
-        hCPU->Fill( theTimer->lastMeasurement().real() );
+    if (fabs(muon.etaValue()) > 0.1 && fabs(muon.etaValue()) < 0.2) hDphiTEST->Fill(charge_gen*deltaPhi(phi_gen,phi_rec)); 
+    
+    hPhi->Fill(phi_rec);
+//    hCharge->Fill(muon.charge());
+    hCharge->Fill(charge_gen);
+    
+    float dx = cos(phi_rec);
+    float dy = sin(phi_rec);
+    float dz = sinh(muon.etaValue());
+    GlobalVector dir(dx,dy,dz);
+    GlobalPoint vtx(0.,0.,0.);
 
-        int numFiltered = 0;
-        hNumHP->Fill(2, float(candidates.size()));
-        unsigned int nSets = candidates.size();
-        for (unsigned int ic= 0; ic <nSets; ic++) {
-          typedef vector<ctfseeding::SeedingHit> RecHits;
-          const RecHits & hits = candidates[ic].hits();
-          float r0 = hits[0].r();
-          float r1 = hits[1].r();
-          GlobalPoint p0(r0*cos(hits[0].phi()), r0*sin(hits[0].phi()), 0.);
-          GlobalPoint p1(r1*cos(hits[1].phi()), r1*sin(hits[1].phi()), 0.);
+    cout <<"GlobalVector: phi:" << dir.phi()<<" eta:"<<dir.eta()<<endl;
+    RectangularEtaPhiTrackingRegion region( dir, vtx, 10.,  0.1, 16., 0.15, 0.35);
 
-          float cotTheta = (hits[1].z()-hits[0].z())/(hits[1].r()-hits[0].r());
-          float eta_rec = asinh(cotTheta);
+    theTimer->start();
+    const OrderedSeedingHits & candidates = theGenerator->run(region,ev,es);
+    theTimer->stop();
+    cout << "TIMING IS: (real)" << theTimer->lastMeasurement().real() << endl;
+    hCPU->Fill( theTimer->lastMeasurement().real() );
 
-          float phi_gen_reco = (p1-p0).phi();
-          float pt_rec = getPt(phi_gen_reco, muon.phiValue(), muon.etaValue()); 
-          hPhiDiff->Fill(deltaPhi(phi_gen,phi_gen_reco));
-          hEtaDiff->Fill(eta_gen-eta_rec);
-          hPt->Fill(pt_rec);
-          if (pt_rec > 8.) numFiltered++;
-        }
-        hNumHP->Fill(3, float(numFiltered));
-        
+    int numFiltered = 0;
+    hNumHP->Fill(2, float(candidates.size()));
+    unsigned int nSets = candidates.size();
+    for (unsigned int ic= 0; ic <nSets; ic++) {
+      typedef vector<ctfseeding::SeedingHit> RecHits;
+      const RecHits & hits = candidates[ic].hits();
+      float r0 = hits[0].r();
+      float r1 = hits[1].r();
+      GlobalPoint p0(r0*cos(hits[0].phi()), r0*sin(hits[0].phi()), 0.);
+      GlobalPoint p1(r1*cos(hits[1].phi()), r1*sin(hits[1].phi()), 0.);
 
-      }
-    } 
+      float cotTheta = (hits[1].z()-hits[0].z())/(hits[1].r()-hits[0].r());
+      float eta_rec = asinh(cotTheta);
+
+      float phi_vtx = (p1-p0).phi();
+//      float pt_rec = getPt(phi_vtx, phi_rec, muon.etaValue(), charge_gen); 
+      float pt_rec = max(getPt(phi_vtx, phi_rec, muon.etaValue(), muon.charge()),
+                         getPt(phi_vtx, phi_rec, muon.etaValue(), -muon.charge()));
+//      hPhiDiff->Fill(deltaPhi(phi_gen,phi_vtx));
+      hEtaDiff->Fill(eta_gen-eta_rec);
+      hPt->Fill(pt_rec);
+      if (pt_rec > 8.) numFiltered++;
+    }
+    hNumHP->Fill(3, float(numFiltered));
   }
-  if (region) delete region;
 }
+
+
+
 
 float L1Seeding::deltaPhi(float phi1, float phi2) const
 {
@@ -242,32 +273,74 @@ float L1Seeding::deltaPhi(float phi1, float phi2) const
   return dPhi;
 }
 
-float L1Seeding::getPt(float phi0, float phiL1, float eta) const {
+
+
+
+float L1Seeding::getPt(float phi0, float phiL1, float eta, float charge) const {
 
   float dphi_min = fabs(deltaPhi(phi0,phiL1));
   float pt_best = 1.;
   float pt_cur = 1;
   while ( pt_cur < 100.) {
-    float phi_exp = phi0+getBending(eta, pt_cur);    
+    float phi_exp = phi0+getBending(eta, pt_cur, charge);    
     float dphi = fabs(deltaPhi(phi_exp,phiL1)); 
     if ( dphi < dphi_min) {
       pt_best = pt_cur;
       dphi_min = dphi; 
     }
-    pt_cur += 0.001;
+    pt_cur += 0.01;
   };
   return pt_best; 
 }
 
-float L1Seeding::getBending(float eta, float pt) const 
+
+
+
+float L1Seeding::getBending(float eta, float pt, float charge) const 
 {
   float p1, p2;
   param(eta,p1,p2);
-  return p1/pt + p2/(pt*pt) - 0.02; 
+  return charge*p1/pt + charge*p2/(pt*pt); // - 0.0218; 
 }
 
 void L1Seeding::param(float eta, float &p1, float& p2) const
 {
+  
+  int ieta = int (10*fabs(eta));
+  switch (ieta) {
+  case 0:  { p1 = -2.658; p2 = -1.551; break; }
+  case 1:  
+  case 2:  { p1 = -2.733; p2 = -0.6316; break; }
+  case 3:  { p1 = -2.607; p2 = -2.558; break; }
+  case 4:  { p1 = -2.715; p2 = -0.9311; break; }
+  case 5:  { p1 = -2.674; p2 = -1.145; break; }
+  case 6:  { p1 = -2.731; p2 = -0.4343; break; }
+  case 7:
+  case 8:  { p1 = -2.684; p2 = -0.7035; break; }
+  case 9:  
+  case 10: { p1 = -2.659; p2 = -0.0325; break; }
+  case 11: { p1 = -2.580; p2 = -0.77; break; }
+  case 12: { p1 = -2412; p2 = 0.5242; break; }
+  case 13: { p1 = -2.192; p2 = 1.691; break; }
+  case 14: 
+  case 15: { p1 = -1.891; p2 = 0.8936; break; }
+  case 16: { p1 = -1.873; p2 = 2.287; break; }
+  case 17: { p1 = -1.636; p2 = 1.881; break; }
+  case 18: { p1 = -1.338; p2 = -0.006; break; }
+  case 19: { p1 = -1.334; p2 = 1.036; break; }
+  case 20: { p1 = -1.247; p2 = 0.461; break; }
+  default: {p1 = -1.141; p2 = 2.06; }             //above eta 2.1
+  }
+
+}
+
+
+/*
+void L1Seeding::param(float eta, float &p1, float& p2) const
+{
+  
+//  int ieta = int (10*fabs(eta));
+//  switch (ieta) {
   float feta = fabs(eta);
   if (feta < 0.07) {
     //"0"
@@ -303,6 +376,7 @@ void L1Seeding::param(float eta, float &p1, float& p2) const
     p2 = -0.0325;
   }
 }
+*/
 
 DEFINE_FWK_MODULE(L1Seeding);
 

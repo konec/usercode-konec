@@ -22,6 +22,9 @@
 #include "RecoTracker/TkSeedingLayers/interface/SeedingHitSet.h"
 #include "AnalysisOrderedHitsInLayers.h"
 
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
+#include "DataFormats/TrackReco/interface/Track.h"
+
 #include "TFile.h"
 #include "TH1D.h"
 #include "TProfile.h"
@@ -45,8 +48,8 @@ Analysis::Analysis( const edm::ParameterSet& conf)
   hEffAlgoEta_D = new TH1D("hEffAlgoEta_D","hEffAlgoEta_D",26,-2.6,2.6);
   hEffPhi_N = new TH1D("hEffPhi_N","hEffPhi_N",63,-3.15,3.15);
   hEffPhi_D = new TH1D("hEffPhi_D","hEffPhi_D",63,-3.15,3.15);
-  hEffPt_N = new TH1D("hEffPt_N","hEffPt_N",101,0.0,10.1);
-  hEffPt_D = new TH1D("hEffPt_D","hEffPt_D",101,0.0,10.1);
+  hEffPt_N = new TH1D("hEffPt_N","hEffPt_N",151,0.0,15.1);
+  hEffPt_D = new TH1D("hEffPt_D","hEffPt_D",151,0.0,15.1);
   hEffAlgoPt_D = new TH1D("hEffAlgoPt_D","hEffAlgoPt_D",101,0.0,10.1);
   hEffAlgoPt_N = new TH1D("hEffAlgoPt_N","hEffAlgoPt_N",101,0.0,10.1);
   hPurePt_N =  new TH1D("hPurePt_N","hPurePt_N",101,0.0,10.1);
@@ -79,7 +82,7 @@ const SimTrack * Analysis::bestTrack(const edm::Event& ev) const
   float ptMin = theConfig.getParameter<double>("ptMinLeadingTrack");
   int particleId = theConfig.getParameter<int>("useParticleId");
 
-  cout <<" MyRegions: "<<simTracks.size()<<" SimTracks found"<<endl;
+  cout <<" Analysis: "<<simTracks.size()<<" SimTracks found"<<endl;
   typedef  SimTrackContainer::const_iterator IP;
   for (IP ip=simTracks.begin(); ip != simTracks.end(); ip++) {
 
@@ -217,6 +220,40 @@ void Analysis::checkAlgoEfficiency2(const SeedingLayerSets &layersSets, const Or
         if(matched) hEffAlgoEta_N->Fill(eta_gen);
       }
     }
+  }
+}
+
+//----------------------------------------------------------------------------------------
+void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
+{
+  typedef  SimTrackContainer::const_iterator IP;
+
+  typedef vector<ctfseeding::SeedingHit> RecHits;
+
+  for (IP ip=theSimTracks.begin(); ip != theSimTracks.end(); ip++) {
+    const SimTrack & track = (*ip); 
+    bool selected = select(track);
+    if (!selected) continue;
+    float eta_gen = track.momentum().eta();
+    float pt_gen = track.momentum().perp();
+
+    bool matched = false;
+    typedef reco::TrackCollection::const_iterator IT;
+    for (IT it=tracks.begin(); it!=tracks.end(); it++) {
+      float pt_rec = (*it).pt();
+      float eta_rec = (*it).momentum().eta();
+      if ( fabs(eta_gen-eta_rec) < 0.05) matched = true;
+    }
+
+    if (fabs(eta_gen) < 2.1) {
+      hEffPt_D->Fill(pt_gen);
+      if(matched) hEffPt_N->Fill(pt_gen);
+    }
+    if (pt_gen > 3.0) {
+      hEffEta_D->Fill(eta_gen);
+      if(matched) hEffEta_N->Fill(eta_gen);
+    }
+    
   }
 }
 
