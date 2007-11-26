@@ -48,8 +48,8 @@ Analysis::Analysis( const edm::ParameterSet& conf)
   hEffAlgoEta_D = new TH1D("hEffAlgoEta_D","hEffAlgoEta_D",26,-2.6,2.6);
   hEffPhi_N = new TH1D("hEffPhi_N","hEffPhi_N",63,-3.15,3.15);
   hEffPhi_D = new TH1D("hEffPhi_D","hEffPhi_D",63,-3.15,3.15);
-  hEffPt_N = new TH1D("hEffPt_N","hEffPt_N",151,0.0,15.1);
-  hEffPt_D = new TH1D("hEffPt_D","hEffPt_D",151,0.0,15.1);
+  hEffPt_N = new TH1D("hEffPt_N","hEffPt_N",1001,0.0,100.1);
+  hEffPt_D = new TH1D("hEffPt_D","hEffPt_D",1001,0.0,100.1);
   hEffAlgoPt_D = new TH1D("hEffAlgoPt_D","hEffAlgoPt_D",101,0.0,10.1);
   hEffAlgoPt_N = new TH1D("hEffAlgoPt_N","hEffAlgoPt_N",101,0.0,10.1);
   hPurePt_N =  new TH1D("hPurePt_N","hPurePt_N",101,0.0,10.1);
@@ -66,38 +66,31 @@ Analysis::~Analysis()
 }
 
 //----------------------------------------------------------------------------------------
-const SimTrack * Analysis::bestTrack(const edm::Event& ev) const
+const SimTrack * Analysis::bestTrack() const
 {
-
-  Handle<SimTrackContainer> simTk;
-  ev.getByLabel("g4SimHits",simTk);
-  vector<SimTrack> simTracks = *(simTk.product());
-
-  Handle<SimVertexContainer> simVc;
-  ev.getByLabel("g4SimHits", simVc);
-  vector<SimVertex> simVtcs = *(simVc.product());
 
   const SimTrack * myTrack = 0;
 
   float ptMin = theConfig.getParameter<double>("ptMinLeadingTrack");
   int particleId = theConfig.getParameter<int>("useParticleId");
 
-  cout <<" Analysis: "<<simTracks.size()<<" SimTracks found"<<endl;
+//  cout <<" Analysis: "<<simTracks.size()<<" SimTracks found"<<endl;
   typedef  SimTrackContainer::const_iterator IP;
-  for (IP ip=simTracks.begin(); ip != simTracks.end(); ip++) {
+  for (IP ip=theSimTracks.begin(); ip != theSimTracks.end(); ip++) {
 
     const SimTrack & track = (*ip);
 
     if ( track.noVertex() ) continue;
     if ( track.type() == -99) continue;
+    if ( abs(track.type()) != particleId) continue;
 
     float eta_gen = track.momentum().eta();
     if ( fabs(eta_gen) > 2.1 ) continue;
 
     float pt_gen = track.momentum().perp();
-    if (simVtcs[track.vertIndex()].position().perp() > 0.1) continue;
-    if ( abs(track.type()) != particleId) continue;
     if (pt_gen < ptMin) continue;
+
+    if (vertex(&track)->position().perp() > 0.1) continue;
 
     myTrack = &track;
     ptMin = pt_gen;
@@ -105,6 +98,15 @@ const SimTrack * Analysis::bestTrack(const edm::Event& ev) const
 
   return myTrack;
 }
+
+//----------------------------------------------------------------------------------------
+const SimVertex * Analysis::vertex(const SimTrack * track) const
+{
+  if (!track) return 0;
+  const SimVertex & vtx = theSimVertices[track->vertIndex()];
+  return &vtx;
+}
+
 
 //----------------------------------------------------------------------------------------
 void Analysis::init(const edm::Event& ev, const edm::EventSetup& es, TrackerHitAssociator * ass) 
@@ -117,10 +119,13 @@ void Analysis::init(const edm::Event& ev, const edm::EventSetup& es, TrackerHitA
   theSimTracks = *(simTk.product());
   cout <<" Analysis has: " << theSimTracks.size()<<" tracks"<<endl;
 
+  Handle<SimVertexContainer> simVc;
+  ev.getByLabel("g4SimHits", simVc);
+  theSimVertices = *(simVc.product());
+  cout <<" Analysis has: " << theSimVertices.size()<<" vertices"<<endl;
+
   theAssociator = ass;
 //  if (theAssociator) delete theAssociator;
-//  edm::ParameterSet asset = theConfig.getParameter<edm::ParameterSet>("AssociatorPSet");
-//  theAssociator = new TrackerHitAssociator(ev,asset);
 }
 
 //----------------------------------------------------------------------------------------
@@ -240,7 +245,7 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
     bool matched = false;
     typedef reco::TrackCollection::const_iterator IT;
     for (IT it=tracks.begin(); it!=tracks.end(); it++) {
-      float pt_rec = (*it).pt();
+//      float pt_rec = (*it).pt();
       float eta_rec = (*it).momentum().eta();
       if ( fabs(eta_gen-eta_rec) < 0.05) matched = true;
     }

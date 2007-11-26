@@ -1,6 +1,8 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "SimDataFormats/Track/interface/SimTrack.h"
+#include "SimDataFormats/Vertex/interface/SimVertex.h"
+
 #include "RecoTracker/TkSeedingLayers/interface/SeedingLayerSets.h"
 
 class SeedingHitSet;
@@ -26,9 +28,10 @@ public:
   Analysis(const edm::ParameterSet& conf);
   ~Analysis();
 
-  const SimTrack * bestTrack(const edm::Event& ev) const;
+  const SimTrack * bestTrack() const;
+  const SimVertex * vertex(const SimTrack * track) const;
 
-  void init(const edm::Event& ev, const edm::EventSetup& es, TrackerHitAssociator * ass);
+  void init(const edm::Event& ev, const edm::EventSetup& es, TrackerHitAssociator * ass = 0);
 
   void checkEfficiency(const reco::TrackCollection & tracks);
   void checkEfficiency(const OrderedSeedingHits& candidates);
@@ -50,6 +53,7 @@ private:
 
   TrackerHitAssociator * theAssociator;
   std::vector<SimTrack> theSimTracks;
+  std::vector<SimVertex> theSimVertices;
 
   TH1D *hEffPt_N, *hEffPt_D, *hEffAlgoPt_N, *hEffAlgoPt_D;
   TH1D *hEffEta_N, *hEffEta_D, *hEffAlgoEta_N, *hEffAlgoEta_D;

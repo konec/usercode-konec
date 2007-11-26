@@ -42,11 +42,40 @@
 #include "DataFormats/L1GlobalMuonTrigger/interface/L1MuGMTReadoutCollection.h"
 
 
+#include "RecoTracker/TkMSParametrization/interface/PixelRecoUtilities.h"
+#include "RecoTracker/TkMSParametrization/interface/PixelRecoPointRZ.h"
+#include "RecoTracker/TkMSParametrization/interface/PixelRecoLineRZ.h"
+#include "RecoMuon/TrackerSeedGenerator/interface/L1MuonPixelTrackFitter.h"
+#include "RecoMuon/TrackerSeedGenerator/src/Circle.h"
+
 
 #include "R2DTimerObserver.h"
 
 using namespace std;
 using namespace ctfseeding;
+
+struct HistoKey {
+  int iEta, iPt;
+  std::string type;
+
+  HistoKey(){}
+  HistoKey(const std::string & atype, float eta, float pt) : type(atype) {
+    iEta = min(20,int(fabs(10.*eta)+1.e-4));
+    iPt  = int(pt+1.e-4);
+  }
+
+  std::string name() const {
+     std::ostringstream str; str << type <<"_"<<iEta<<"_"<<iPt; return str.str();
+  }
+
+  bool operator< (const HistoKey & other) const {
+    if (iEta < other.iEta) return true;
+    if (iEta > other.iEta) return false;
+    if (iPt  < other.iPt)  return true;
+    return false;
+  }
+};
+
 
 
 class L1Seeding : public edm::EDAnalyzer {
@@ -57,10 +86,8 @@ public:
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
   virtual void endJob() { }
 private:
-  float deltaPhi(float phi1, float phi2) const;
-  float getPt(float phi0, float phiL1, float eta, float charge) const;
-  float getBending(float eta, float pt, float charge) const; 
-  void param(float eta, float &p1, float& p2) const;
+  void bookBendingHisto(float eta, float pt);
+  TH1D *getBendingHisto(float eta, float pt);
 private:
   edm::ParameterSet theConfig;
   OrderedHitsGenerator * theGenerator;
@@ -70,16 +97,20 @@ private:
   SeedingLayerSets theLayers;
 
   TProfile *hNumHP;
-  TProfile *hDPhiL1[21];
   TH1D *hCPU;
-  TH1D *hEtaDiff, *hPhiDiff, *hPt;
-  TH1D *hEta, *hPhi;
-  TH1D *hCharge;
-  TH1D *hDphiTEST;
+  TH1D *hEtaDist, *hPhiDist;
+  TH1D *hPt, *hEta, *hPhi, *hTIP, *hZIP;
+  TH1D *hEffCharge_N, *hEffCharge_D;
   R2DTimerObserver * theTimer;
+  TH1D * hTMP;
+
+  typedef std::map<HistoKey, TH1D *> HistoMap;
+  HistoMap theL1BendingHisto;
+  HistoMap thePtRes, thePhiRes, theCotRes, theTipRes, theZipRes;
+
+  L1MuonPixelTrackFitter theFitter;
   
 };
-
 
 L1Seeding::L1Seeding(const edm::ParameterSet& conf) 
   : theConfig(conf), theGenerator(0), theRegionProducer(0), eventCount(0), theAnalysis(0),
@@ -102,13 +133,6 @@ L1Seeding::~L1Seeding()
 
 void L1Seeding::beginJob(const edm::EventSetup& es)
 {
-
-/*
-  edm::ParameterSet regfactoryPSet =
-      theConfig.getParameter<edm::ParameterSet>("RegionFactoryPSet");
-  std::string regfactoryName = regfactoryPSet.getParameter<std::string>("ComponentName");
-  theRegionProducer = TrackingRegionProducerFactory::get()->create(regfactoryName,regfactoryPSet);
-*/
 
   edm::ParameterSet orderedPSet =
       theConfig.getParameter<edm::ParameterSet>("OrderedHitsFactoryPSet");
@@ -133,37 +157,111 @@ void L1Seeding::beginJob(const edm::EventSetup& es)
   edm::ParameterSet apset = theConfig.getParameter<edm::ParameterSet>("AnalysisPSet");
   theAnalysis = new Analysis(apset);
 
+  int npt = 16;
+  float pt[] = { 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100}; 
+  for (int ieta=0; ieta <=20; ieta++) {
+    for (int ipt=0; ipt < npt; ipt++) {
+     bookBendingHisto( float(ieta)/10., pt[ipt]);
+    }
+  }
+
   int Nsize = 7;
   hNumHP = new TProfile("hNumHP","NTRACKS", Nsize,0.,float(Nsize),"S");
   hCPU = new TH1D ("hCPU","hCPU",20,0.,0.05);
-  hEtaDiff = new TH1D("hEtaDiff","hEtaDiff",100,-0.15,0.15);
-  hPhiDiff = new TH1D("hPhiDiff","hPhiDiff",100, -0.2,0.2);
-  hEta = new TH1D("hEta","hEta",100,-0.2,2.5);
-  hPhi = new TH1D("hPhi","hPhi",1000,-1.,7.);
-  hPt = new TH1D("hPt","hPt",100,0.,25.);
-  hCharge = new TH1D("hCharge","hCharge",5,-2.5,2.5);
-  TProfile hTmp("hTmp","Fit",96,4.5,100.5);
+  hEtaDist = new TH1D("hEtaDist","hEtaDist",100,-0.2,2.5);
+  hPhiDist = new TH1D("hPhiDist","hPhiDist",1000,-1.,7.);
 
-  hDphiTEST = new TH1D("hDphiTEST","hDphiTEST",100,-0.5, 0.);
-  
+  hPt = new TH1D("hPt","hPt",100,-8,8);
+  hTIP = new TH1D("hTIP","hTIP",100,-8,8);
+  hZIP = new TH1D("hZIP","hZIP",100,-8,8);
+  hEta= new TH1D("hEta","hEta",100,-8,8);
+  hPhi= new TH1D("hPhi","hPhi",100, -8,8);
 
-  char name[80];
-  for (int ieta=0; ieta <=20; ieta++) {
-    sprintf(name,"hDPhiL1_%d",ieta);
-    hDPhiL1[ieta] = new TProfile(hTmp);
-    hDPhiL1[ieta]->SetNameTitle(name,name);
-  }
+  hEffCharge_N = new TH1D("hEffCharge_N","hEffCharge_N",npt-1,pt);
+  hEffCharge_D = new TH1D("hEffCharge_D","hEffCharge_D",npt-1,pt);
+
+  hTMP = new TH1D("hTMP","hTMP",100,0.,25.);
 
 }
 
+
+void L1Seeding::bookBendingHisto(float eta, float pt)
+{
+  HistoKey key;
+
+  key = HistoKey("hDPhiL1",eta,pt);
+  float phi = theFitter.getBending(eta,pt,1);
+  double dphi = max(0.2,0.5*fabs(phi));
+  double phi_min = phi-dphi;
+  double phi_max = phi+dphi;
+  cout <<"START NEW BENDING HISTO:" 
+       <<"eta: " << eta<<" pt: " << pt
+       <<" histo: " <<key.name().c_str()
+       <<" range(phi bending): "<< phi_min<<"max:"<<phi_max<<endl; 
+  theL1BendingHisto[key] =  new TH1D(key.name().c_str(),key.name().c_str(),50,phi_min,phi_max);
+
+  key = HistoKey("hPtRes",eta,pt);
+  double val = 1.; if (fabs(pt) > 29.) val = 2.; if (fabs(eta) > 1.1 ) val *= 2; 
+  thePtRes[key] = new TH1D(key.name().c_str(), key.name().c_str(), 50,-val,val);
+
+  key = HistoKey("hPhiRes",eta,pt); 
+  thePhiRes[key] = new TH1D(key.name().c_str(),key.name().c_str(), 100,-0.01,0.01);
+
+  key = HistoKey("hCotRes",eta,pt); 
+  theCotRes[key] = new TH1D(key.name().c_str(),key.name().c_str(), 100,-0.01,0.01);
+
+  key = HistoKey("hTipRes",eta,pt);
+  theTipRes[key] = new TH1D(key.name().c_str(),key.name().c_str(), 50,-0.04,0.04);
+
+  key = HistoKey("hZipRes",eta,pt);
+  theZipRes[key] = new TH1D(key.name().c_str(),key.name().c_str(), 50,-0.05,0.05);
+
+  
+}
+
+
+TH1D * L1Seeding::getBendingHisto(float eta, float pt)
+{
+  HistoKey key("hDPhiL1",eta,pt);
+  HistoMap::iterator im = theL1BendingHisto.find(key);
+  if (im != theL1BendingHisto.end() ) {
+    cout <<"ALREADY EXISTING BENDING HISTO:" <<key.name().c_str()<<endl;
+    return im->second;
+  } else {
+   cout <<"*** getBendingHisto ERROR - histogram not found!" << endl;
+   return 0;
+  }
+}
+
+//TH1D * L1Seeding::getBendingHisto(float eta, float pt)
+//{
+//  HistoKey key(eta,pt);
+//  HistoMap::iterator im = theL1BendingHisto.find(key);
+//  if (im != theL1BendingHisto.end() ) {
+//    cout <<"ALREADY EXISTING BENDING HISTO:" <<key.name().c_str()<<endl;
+//    return im->second;
+//  }
+//  else {
+//    float phi = getBending(eta,pt,1);
+//    double dphi = max(0.2,0.5*fabs(phi));
+//    double phi_min = phi-dphi;
+//    double phi_max = phi+dphi;
+//    cout <<"START NEW BENDING HISTO:" 
+//         <<key.name().c_str()<<"phi bending: "<< phi_min<<"max:"<<phi_max<<endl; 
+//    TH1D * h = new TH1D(key.name().c_str(),key.name().c_str(),50,phi_min,phi_max); 
+//    theL1BendingHisto.insert(make_pair(key,h));
+//    return h;
+//  }
+//}
 
 void L1Seeding::analyze(
     const edm::Event& ev, const edm::EventSetup& es)
 {
   cout <<"*** L1Seeding, analyze event: " << ev.id()<<" event count:"<<++eventCount << endl;
 
-
-  const SimTrack * track = theAnalysis->bestTrack(ev);
+  theAnalysis->init(ev,es);
+  const SimTrack * track = theAnalysis->bestTrack();
+  const SimVertex * vertex = theAnalysis->vertex(track);
   if (!track) return;
   Analysis::print(*track);
   float phi_gen = track->momentum().phi();
@@ -183,46 +281,38 @@ void L1Seeding::analyze(
   vector<L1MuGMTReadoutRecord> gmt_records = gmtrc->getRecords();
   vector<L1MuGMTReadoutRecord>::const_iterator igmtrr;
 
+  int nMuons = 0;
   for(igmtrr=gmt_records.begin(); igmtrr!=gmt_records.end(); igmtrr++) {
     vector<L1MuGMTExtendedCand>::const_iterator gmt_iter;
     vector<L1MuGMTExtendedCand> exc = igmtrr->getGMTCands();
     if (exc.size() <= 0) continue;
+    nMuons++;
     L1MuGMTExtendedCand & muon = exc.front();
 
-//      bxg[igmt]=(*gmt_iter).bx();
-//      ptg[igmt]=(*gmt_iter).ptValue();
-//      chag[igmt]=(*gmt_iter).charge();
-//      etag[igmt]=(*gmt_iter).etaValue();
-//      phig[igmt]=(*gmt_iter).phiValue();
-//      qualg[igmt]=(*gmt_iter).quality();
-//      detg[igmt]=(*gmt_iter).detector();
-//      rankg[igmt]=(*gmt_iter).rank();
-//      isolg[igmt]=(*gmt_iter).isol();
-//      mipg[igmt]=(*gmt_iter).mip();
-//      int data = (*gmt_iter).getDataWord();
+    
+    hEffCharge_D->Fill(pt_gen);
+    if (charge_gen==muon.charge()) hEffCharge_N->Fill(pt_gen);
 
     float phi_rec = muon.phiValue()+0.021817;
-    float phi_exp = phi_gen+getBending(eta_gen, pt_gen, charge_gen);
-    hPhiDiff->Fill(deltaPhi(phi_rec,phi_exp));
-    hEta->Fill(fabs(muon.etaValue()));
-    int ieta = min(20, int(fabs(muon.etaValue()*10.)));
-    hDPhiL1[ieta]->Fill(pt_gen, charge_gen*deltaPhi(phi_gen,phi_rec)); 
 
-    if (fabs(muon.etaValue()) > 0.1 && fabs(muon.etaValue()) < 0.2) hDphiTEST->Fill(charge_gen*deltaPhi(phi_gen,phi_rec)); 
+    hEtaDist->Fill(fabs(muon.etaValue()));
+    hPhiDist->Fill(phi_rec);
     
-    hPhi->Fill(phi_rec);
-//    hCharge->Fill(muon.charge());
-    hCharge->Fill(charge_gen);
+
+    TH1D * hDPhiL1 =  theL1BendingHisto[HistoKey("hDPhiL1",muon.etaValue(), pt_gen)];
+    if (!hDPhiL1)  abort();
+//  hDPhiL1->Fill(charge_gen*theFitter.deltaPhi(phi_gen,phi_rec));
+
     
     float dx = cos(phi_rec);
     float dy = sin(phi_rec);
+    cout <<" eta: " << muon.etaValue() << endl;
     float dz = sinh(muon.etaValue());
     GlobalVector dir(dx,dy,dz);
     GlobalPoint vtx(0.,0.,0.);
 
-    cout <<"GlobalVector: phi:" << dir.phi()<<" eta:"<<dir.eta()<<endl;
-    RectangularEtaPhiTrackingRegion region( dir, vtx, 10.,  0.1, 16., 0.15, 0.35);
-
+    //RectangularEtaPhiTrackingRegion region( dir, vtx, 10.,  0.1, 16., 0.15, 0.35);
+    GlobalTrackingRegion region( 5., vtx, 0.1, 16., true);
     theTimer->start();
     const OrderedSeedingHits & candidates = theGenerator->run(region,ev,es);
     theTimer->stop();
@@ -237,146 +327,44 @@ void L1Seeding::analyze(
       const RecHits & hits = candidates[ic].hits();
       float r0 = hits[0].r();
       float r1 = hits[1].r();
-      GlobalPoint p0(r0*cos(hits[0].phi()), r0*sin(hits[0].phi()), 0.);
-      GlobalPoint p1(r1*cos(hits[1].phi()), r1*sin(hits[1].phi()), 0.);
+      GlobalPoint p0(r0*cos(hits[0].phi()), r0*sin(hits[0].phi()), hits[0].z());
+      GlobalPoint p1(r1*cos(hits[1].phi()), r1*sin(hits[1].phi()), hits[1].z());
+      PixelRecoLineRZ line(p0,p1);
 
-      float cotTheta = (hits[1].z()-hits[0].z())/(hits[1].r()-hits[0].r());
-      float eta_rec = asinh(cotTheta);
+      double phi_vtx = (p1-p0).phi();
+      hDPhiL1->Fill(charge_gen*theFitter.deltaPhi(phi_vtx,phi_rec));
 
-      float phi_vtx = (p1-p0).phi();
-//      float pt_rec = getPt(phi_vtx, phi_rec, muon.etaValue(), charge_gen); 
-      float pt_rec = max(getPt(phi_vtx, phi_rec, muon.etaValue(), muon.charge()),
-                         getPt(phi_vtx, phi_rec, muon.etaValue(), -muon.charge()));
-//      hPhiDiff->Fill(deltaPhi(phi_gen,phi_vtx));
-      hEtaDiff->Fill(eta_gen-eta_rec);
-      hPt->Fill(pt_rec);
-      if (pt_rec > 8.) numFiltered++;
+      double invPt_rec = theFitter.valInversePt(phi_vtx, phi_rec, muon.etaValue()); 
+      double invPtErr  = theFitter.errInversePt(invPt_rec, muon.etaValue()); 
+    
+      int charge_rec = (invPt_rec > 0.) ? 1 : -1;
+      double curvature = PixelRecoUtilities::curvature(invPt_rec, es); 
+      Circle circle(p0,p1,curvature);
+      phi_vtx = theFitter.valPhi(circle, charge_rec);
+
+      double tip = theFitter.valTip(circle,curvature);
+      double zip = theFitter.valZip(curvature, p0,p1) - vertex->position().z();
+
+      //pull histos
+      hTIP->Fill(tip/theFitter.errTip(invPt_rec,muon.etaValue()));
+      hZIP->Fill(zip/theFitter.errZip(invPt_rec,muon.etaValue()));
+      hPhi->Fill(theFitter.deltaPhi(phi_gen,phi_vtx)/theFitter.errPhi(invPt_rec,muon.etaValue()));
+      hEta->Fill((theFitter.valCotTheta(line)-sinh(eta_gen))/theFitter.errCotTheta(invPt_rec,muon.etaValue()));  
+      hPt->Fill( (invPt_rec-charge_gen/pt_gen)/invPtErr);
+      hTMP->Fill(1./fabs(invPt_rec));
+
+      // resolution histos
+      thePtRes[ HistoKey( "hPtRes",eta_gen,pt_gen)]->Fill(charge_gen*pt_gen*invPt_rec-1.);
+      thePhiRes[HistoKey("hPhiRes",eta_gen,pt_gen)]->Fill( theFitter.deltaPhi(phi_gen, phi_vtx));
+      theCotRes[HistoKey("hCotRes",eta_gen,pt_gen)]->Fill(line.cotLine()-sinh(eta_gen));
+      theTipRes[HistoKey("hTipRes",eta_gen,pt_gen)]->Fill(tip);
+      theZipRes[HistoKey("hZipRes",eta_gen,pt_gen)]->Fill(zip);
+
     }
     hNumHP->Fill(3, float(numFiltered));
   }
+  if (nMuons > 0) cout <<"NMUONS: there were "<<nMuons <<" L1 muons in the event"<<endl;
 }
 
-
-
-
-float L1Seeding::deltaPhi(float phi1, float phi2) const
-{
-  while ( phi1 >= 2*M_PI) phi1 -= 2*M_PI;
-  while ( phi2 >= 2*M_PI) phi2 -= 2*M_PI;
-  while ( phi1 < 0) phi1 += 2*M_PI;
-  while ( phi2 < 0) phi2 += 2*M_PI;
-  float dPhi = phi2-phi1;
-  
-  if ( dPhi > M_PI ) dPhi =- 2*M_PI;  
-  if ( dPhi < -M_PI ) dPhi =+ 2*M_PI;  
-
-  return dPhi;
-}
-
-
-
-
-float L1Seeding::getPt(float phi0, float phiL1, float eta, float charge) const {
-
-  float dphi_min = fabs(deltaPhi(phi0,phiL1));
-  float pt_best = 1.;
-  float pt_cur = 1;
-  while ( pt_cur < 100.) {
-    float phi_exp = phi0+getBending(eta, pt_cur, charge);    
-    float dphi = fabs(deltaPhi(phi_exp,phiL1)); 
-    if ( dphi < dphi_min) {
-      pt_best = pt_cur;
-      dphi_min = dphi; 
-    }
-    pt_cur += 0.01;
-  };
-  return pt_best; 
-}
-
-
-
-
-float L1Seeding::getBending(float eta, float pt, float charge) const 
-{
-  float p1, p2;
-  param(eta,p1,p2);
-  return charge*p1/pt + charge*p2/(pt*pt); // - 0.0218; 
-}
-
-void L1Seeding::param(float eta, float &p1, float& p2) const
-{
-  
-  int ieta = int (10*fabs(eta));
-  switch (ieta) {
-  case 0:  { p1 = -2.658; p2 = -1.551; break; }
-  case 1:  
-  case 2:  { p1 = -2.733; p2 = -0.6316; break; }
-  case 3:  { p1 = -2.607; p2 = -2.558; break; }
-  case 4:  { p1 = -2.715; p2 = -0.9311; break; }
-  case 5:  { p1 = -2.674; p2 = -1.145; break; }
-  case 6:  { p1 = -2.731; p2 = -0.4343; break; }
-  case 7:
-  case 8:  { p1 = -2.684; p2 = -0.7035; break; }
-  case 9:  
-  case 10: { p1 = -2.659; p2 = -0.0325; break; }
-  case 11: { p1 = -2.580; p2 = -0.77; break; }
-  case 12: { p1 = -2412; p2 = 0.5242; break; }
-  case 13: { p1 = -2.192; p2 = 1.691; break; }
-  case 14: 
-  case 15: { p1 = -1.891; p2 = 0.8936; break; }
-  case 16: { p1 = -1.873; p2 = 2.287; break; }
-  case 17: { p1 = -1.636; p2 = 1.881; break; }
-  case 18: { p1 = -1.338; p2 = -0.006; break; }
-  case 19: { p1 = -1.334; p2 = 1.036; break; }
-  case 20: { p1 = -1.247; p2 = 0.461; break; }
-  default: {p1 = -1.141; p2 = 2.06; }             //above eta 2.1
-  }
-
-}
-
-
-/*
-void L1Seeding::param(float eta, float &p1, float& p2) const
-{
-  
-//  int ieta = int (10*fabs(eta));
-//  switch (ieta) {
-  float feta = fabs(eta);
-  if (feta < 0.07) {
-    //"0"
-    p1 = -2.658;
-    p2 = -1.551;
-  } else if ( feta < 0.27) {
-    //"2"
-    p1 = -2.733;
-    p2 = -0.6316;
-  } else if ( feta < 0.44) {
-    //"3"
-    p1 = -2.607;
-    p2 = -2.558;
-  } else if ( feta < 0.58) {
-    //"4"
-    p1 = -2.715;
-    p2 = -0.9311;
-  } else if ( feta < 0.72) {
-    //"5"
-    p1 = -2.674;
-    p2 = -1.145; 
-  } else if ( feta < 0.83) {
-    //"6"
-    p1 = -2.731;
-    p2 = -0.4343;
-  }  else if ( feta < 0.93) {
-    //"8"
-    p1 = -2.684;
-    p2 = -0.7035;
-  } else {
-    //"10"
-    p1 = -2.659;
-    p2 = -0.0325;
-  }
-}
-*/
 
 DEFINE_FWK_MODULE(L1Seeding);
-
