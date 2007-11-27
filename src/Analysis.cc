@@ -87,10 +87,10 @@ const SimTrack * Analysis::bestTrack() const
     float eta_gen = track.momentum().eta();
     if ( fabs(eta_gen) > 2.1 ) continue;
 
-    float pt_gen = track.momentum().perp();
+    float pt_gen = track.momentum().pt();
     if (pt_gen < ptMin) continue;
 
-    if (vertex(&track)->position().perp() > 0.1) continue;
+    if (sqrt(vertex(&track)->position().perp2()) > 0.1) continue;
 
     myTrack = &track;
     ptMin = pt_gen;
@@ -140,7 +140,7 @@ void Analysis::checkAlgoEfficiency1(const SeedingLayerSets &layersSets, const Or
     bool selected = select(track);
     if (!selected) continue;
     float eta_gen = track.momentum().eta();
-    float pt_gen = track.momentum().perp();
+    float pt_gen = track.momentum().pt();
     int nHitsInLayes = 0;
     typedef vector<SeedingLayer>::const_iterator IL;
     for (IL il = layers.begin(); il != layers.end(); il++) {
@@ -160,10 +160,10 @@ void Analysis::checkAlgoEfficiency1(const SeedingLayerSets &layersSets, const Or
     }
 
     if (fabs(eta_gen) < 2.1) {
-      hEffAlgoPt_D->Fill(pt_gen);
-      if(matched) hEffAlgoPt_N->Fill(pt_gen);
+      hEffAlgoPt_D->Fill(pt_gen+1.e-2);
+      if(matched) hEffAlgoPt_N->Fill(pt_gen+1.e-2);
     }
-    if (pt_gen > 3.0) {
+    if (pt_gen > 0.9) {
       hEffAlgoEta_D->Fill(eta_gen);
       if(matched) hEffAlgoEta_N->Fill(eta_gen);
     }
@@ -181,7 +181,7 @@ void Analysis::checkAlgoEfficiency2(const SeedingLayerSets &layersSets, const Or
     bool selected = select(track);
     if (!selected) continue;
     float eta_gen = track.momentum().eta();
-    float pt_gen = track.momentum().perp();
+    float pt_gen = track.momentum().pt();
 
     for (SeedingLayerSets::const_iterator ils=layersSets.begin(); ils!=layersSets.end(); ils++) {
       const SeedingLayers & layers = (*ils);
@@ -216,11 +216,11 @@ void Analysis::checkAlgoEfficiency2(const SeedingLayerSets &layersSets, const Or
 
       // pt efficiency
       if (fabs(eta_gen) < 2.1) {
-        hEffAlgoPt_D->Fill(pt_gen);
-        if(matched) hEffAlgoPt_N->Fill(pt_gen);
+        hEffAlgoPt_D->Fill(pt_gen+1.e-2);
+        if(matched) hEffAlgoPt_N->Fill(pt_gen+1.e-2);
       }
       // eta efficiency
-      if (pt_gen > 3.0) {
+      if (pt_gen > 0.9) {
         hEffAlgoEta_D->Fill(eta_gen);
         if(matched) hEffAlgoEta_N->Fill(eta_gen);
       }
@@ -240,7 +240,7 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
     bool selected = select(track);
     if (!selected) continue;
     float eta_gen = track.momentum().eta();
-    float pt_gen = track.momentum().perp();
+    float pt_gen = track.momentum().pt();
 
     bool matched = false;
     typedef reco::TrackCollection::const_iterator IT;
@@ -251,10 +251,11 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
     }
 
     if (fabs(eta_gen) < 2.1) {
-      hEffPt_D->Fill(pt_gen);
-      if(matched) hEffPt_N->Fill(pt_gen);
+      cout <<" pt_gen is: " << pt_gen << endl;
+      hEffPt_D->Fill(pt_gen+1.e-2);
+      if(matched) hEffPt_N->Fill(pt_gen+1.e-2);
     }
-    if (pt_gen > 3.0) {
+    if (pt_gen > 0.9) {
       hEffEta_D->Fill(eta_gen);
       if(matched) hEffEta_N->Fill(eta_gen);
     }
@@ -274,7 +275,7 @@ void Analysis::checkEfficiency( const OrderedSeedingHits & candidates)
     bool selected = select(track);
     if (!selected) continue;
     float eta_gen = track.momentum().eta();
-    float pt_gen = track.momentum().perp();
+    float pt_gen = track.momentum().pt();
 //    print(track);
 
     bool matched = false;
@@ -286,10 +287,10 @@ void Analysis::checkEfficiency( const OrderedSeedingHits & candidates)
     }
 
     if (fabs(eta_gen) < 2.1) {
-      hEffPt_D->Fill(pt_gen);
-      if(matched) hEffPt_N->Fill(pt_gen);
+      hEffPt_D->Fill(pt_gen+1.e-2);
+      if(matched) hEffPt_N->Fill(pt_gen+1.e-2);
     }
-    if (pt_gen > 3.0) {
+    if (pt_gen > 0.9) {
       hEffEta_D->Fill(eta_gen);
       if(matched) hEffEta_N->Fill(eta_gen);
     }
@@ -348,7 +349,7 @@ void Analysis::print(const SimTrack & track)
 {
   if ( track.type() == -99) return;
   float phi_gen = track.momentum().phi();
-  float pt_gen = track.momentum().perp();
+  float pt_gen = track.momentum().pt();
   float eta_gen = track.momentum().eta();
 //    HepLorentzVector vtx =(*simVtcs)[p->vertIndex()].position();
 //    float z_gen  = vtx.z();

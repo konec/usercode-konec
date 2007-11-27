@@ -64,7 +64,7 @@ vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& 
     float eta_gen = track.momentum().eta();
     if ( fabs(eta_gen) > 2.5 ) continue; 
 
-    float pt_gen = track.momentum().perp();
+    float pt_gen = track.momentum().pt();
     if (pt_gen < ptMin) continue;
 
     float tr_x = simVtcs[track.vertIndex()].position().x();
@@ -82,7 +82,7 @@ vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& 
                                    myTrack->momentum().z() ).unit();
 
   cout << " BEST TRACK: "
-       <<" pt="<<myTrack->momentum().perp()
+       <<" pt="<<myTrack->momentum().pt()
        <<" eta="<< myTrack->momentum().eta() << endl;
 
 
