@@ -41,7 +41,6 @@ template <class T> T sqr( T t) {return t*t;}
 Analysis::Analysis( const edm::ParameterSet& conf)
   : theConfig(conf), theAssociator(0)
 { 
-  rootFile = new TFile("analysis.root","RECREATE");
   hEffEta_N = new TH1D("hEffEta_N","hEffEta_N",26,-2.6,2.6);
   hEffEta_D = new TH1D("hEffEta_D","hEffEta_D",26,-2.6,2.6);
   hEffAlgoEta_N = new TH1D("hEffAlgoEta_N","hEffAlgoEta_N",26,-2.6,2.6);
@@ -55,13 +54,30 @@ Analysis::Analysis( const edm::ParameterSet& conf)
   hPurePt_N =  new TH1D("hPurePt_N","hPurePt_N",101,0.0,10.1);
   hPurePt_D =  new TH1D("hPurePt_D","hPurePt_D",101,0.0,10.1);
 
+  gHistos.SetOwner();
+
+  gHistos.Add(hEffEta_N);
+  gHistos.Add(hEffEta_D);
+  gHistos.Add(hEffAlgoEta_N);
+  gHistos.Add(hEffAlgoEta_D);
+  gHistos.Add(hEffPhi_N);
+  gHistos.Add(hEffPhi_D);
+  gHistos.Add(hEffPt_N);
+  gHistos.Add(hEffPt_D);
+  gHistos.Add(hEffAlgoPt_D);
+  gHistos.Add(hEffAlgoPt_N);
+  gHistos.Add(hPurePt_N);
+  gHistos.Add(hPurePt_D);
+
 }
 
 //----------------------------------------------------------------------------------------
 Analysis::~Analysis()
 { 
   cout <<"WRITING ROOT FILE"<< std::endl;
-    rootFile->Write();
+  TFile rootFile("analysis.root","RECREATE");
+  gHistos.Write();
+  rootFile.Close();
   cout <<"rootFile WRITTEN, Analysis DTOR"<<endl; 
 }
 
@@ -85,7 +101,7 @@ const SimTrack * Analysis::bestTrack() const
     if ( abs(track.type()) != particleId) continue;
 
     float eta_gen = track.momentum().eta();
-    if ( fabs(eta_gen) > 2.1 ) continue;
+    if ( fabs(eta_gen) > 1.4 ) continue;
 
     float pt_gen = track.momentum().pt();
     if (pt_gen < ptMin) continue;
@@ -159,7 +175,7 @@ void Analysis::checkAlgoEfficiency1(const SeedingLayerSets &layersSets, const Or
       if (nmatched == hits.size() ) matched = true;
     }
 
-    if (fabs(eta_gen) < 2.1) {
+    if (fabs(eta_gen) < 1.4) {
       hEffAlgoPt_D->Fill(pt_gen+1.e-2);
       if(matched) hEffAlgoPt_N->Fill(pt_gen+1.e-2);
     }
@@ -215,7 +231,7 @@ void Analysis::checkAlgoEfficiency2(const SeedingLayerSets &layersSets, const Or
       }
 
       // pt efficiency
-      if (fabs(eta_gen) < 2.1) {
+      if (fabs(eta_gen) < 1.4 ) {
         hEffAlgoPt_D->Fill(pt_gen+1.e-2);
         if(matched) hEffAlgoPt_N->Fill(pt_gen+1.e-2);
       }
@@ -250,7 +266,7 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
       if ( fabs(eta_gen-eta_rec) < 0.05) matched = true;
     }
 
-    if (fabs(eta_gen) < 2.1) {
+    if (fabs(eta_gen) < 1.4) {
       cout <<" pt_gen is: " << pt_gen << endl;
       hEffPt_D->Fill(pt_gen+1.e-2);
       if(matched) hEffPt_N->Fill(pt_gen+1.e-2);
@@ -286,7 +302,7 @@ void Analysis::checkEfficiency( const OrderedSeedingHits & candidates)
       if (nmatched == hits.size() ) matched = true;
     }
 
-    if (fabs(eta_gen) < 2.1) {
+    if (fabs(eta_gen) < 1.4) {
       hEffPt_D->Fill(pt_gen+1.e-2);
       if(matched) hEffPt_N->Fill(pt_gen+1.e-2);
     }
@@ -340,7 +356,7 @@ bool Analysis::select(const SimTrack & track) const
   if ( abs(track.type()) != 13 ) return false;
 
 //  float eta_gen = track.momentum().eta();
-//  if ( fabs(eta_gen) > 2.1 ) return false;
+//  if ( fabs(eta_gen) > 2.0 ) return false;
   return true;
 }
 

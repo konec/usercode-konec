@@ -56,6 +56,7 @@ private:
   TProfile *hNumHP, *hCPU;
   TH1D *hEtaDiff, *hEffReg_N, *hEffReg_D;
   TH1D *hCPUDist;
+  TObjArray hList;
   
 };
 
@@ -65,7 +66,8 @@ PairAnalysis::PairAnalysis(const edm::ParameterSet& conf)
     theGenerator(0), 
    theRegionProducer(0),
     eventCount(0), 
-   theAnalysis(0) 
+   theAnalysis(0), 
+   hList(0)
 {
   edm::LogInfo("PairAnalysis")<<" CTORXX";
 }
@@ -114,8 +116,15 @@ void PairAnalysis::beginJob(const edm::EventSetup& es)
   hCPU = new TProfile("hCPU","CPU time", Nsize,0.,float(Nsize),"S");
   hEffReg_N = new TH1D("hEffReg_N","hEffReg_N",Nsize,0.,float(Nsize));
   hEffReg_D = new TH1D("hEffReg_D","hEffReg_D",Nsize,0.,float(Nsize));
-//  hEtaDiff = new TH1D("hEtaDiff","hEtaDiff",100,-0.5,0.5);
+  hEtaDiff = new TH1D("hEtaDiff","hEtaDiff",100,-0.5,0.5);
   hCPUDist = new TH1D("hCPUDist","hCPUDist",60,0.,0.03);
+
+  gHistos.Add(hNumHP);
+  gHistos.Add(hCPU);
+  gHistos.Add(hEffReg_N);
+  gHistos.Add(hEffReg_D);
+  gHistos.Add(hCPUDist);
+  gHistos.Add(hEtaDiff);
 }
 
 
@@ -185,6 +194,7 @@ void PairAnalysis::analyze(
     // analysis for particular region
     //
     if (iReg== (int)regions.size()-1) { 
+      
       theAnalysis->init(ev,es,&assoc);
       theAnalysis->checkEfficiency(candidates);
       theAnalysis->checkAlgoEfficiency2(theLayers, candidates);

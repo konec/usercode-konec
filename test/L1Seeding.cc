@@ -266,7 +266,7 @@ void L1Seeding::analyze(
   Analysis::print(*track);
   float phi_gen = track->momentum().phi();
   float eta_gen = track->momentum().eta();
-  float pt_gen  = track->momentum().perp();
+  float pt_gen  = track->momentum().pt();
 
   int charge_gen = (track->type() == 13) ? -1 : 1; 
 

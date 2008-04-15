@@ -10,11 +10,12 @@ class TrackerHitAssociator;
 class OrderedSeedingHits;
 class TrackingRegion;
 class TH1D;
-class TFile;
-class TProfile;
 
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/TrackReco/interface/Track.h"
+
+#include "TObjArray.h"
+TObjArray gHistos;
 
 
 #include <vector>
@@ -59,8 +60,6 @@ private:
   TH1D *hEffEta_N, *hEffEta_D, *hEffAlgoEta_N, *hEffAlgoEta_D;
   TH1D *hEffPhi_N, *hEffPhi_D;
   TH1D *hPurePt_N, *hPurePt_D;
-
-  TFile * rootFile;
 
 
 };

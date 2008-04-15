@@ -81,6 +81,8 @@ void TrackAnalysis::analyze(
   ev.getByLabel(collectionLabel,trackCollection);
   const reco::TrackCollection tracks = *(trackCollection.product());
 
+  cout <<" number of tracks: " << tracks.size() << endl;
+
   theAnalysis->init(ev,es,&assoc);
   theAnalysis->checkEfficiency(tracks);
 

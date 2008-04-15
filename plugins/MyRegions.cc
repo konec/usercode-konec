@@ -30,6 +30,7 @@ MyRegions::MyRegions(const edm::ParameterSet& cfg)
 
 vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& es) const
 {
+  cout <<"** My regions ***************************************"<<endl;
   vector<TrackingRegion* > result;
 
   Handle<SimTrackContainer> simTk;
@@ -73,7 +74,6 @@ vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& 
 
     myTrack = &track;
     ptMin = pt_gen;
-
   }
 
   if (!myTrack) return result;
@@ -82,14 +82,24 @@ vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& 
                                    myTrack->momentum().z() ).unit();
 
   cout << " BEST TRACK: "
+       <<" type="<<myTrack->type()
        <<" pt="<<myTrack->momentum().pt()
        <<" eta="<< myTrack->momentum().eta() << endl;
 
 
 
   GlobalPoint vtx = (theVertexFromParticle) ?
-      GlobalPoint(x_vtx,y_vtx, simVtcs[myTrack->vertIndex()].position().z())
+  GlobalPoint(simVtcs[myTrack->vertIndex()].position().x(),
+              simVtcs[myTrack->vertIndex()].position().y(),
+              simVtcs[myTrack->vertIndex()].position().z())
     : GlobalPoint (x_vtx,y_vtx,z_vtx);
+
+//  vtx = GlobalPoint(0.1*cos(M_PI/4), 0.1*sin(M_PI/4), vtx.z());
+//  dir = GlobalVector(sin(M_PI/4), -cos(M_PI/4), 0.0).unit();
+
+  int charge = (myTrack->type()==13) ? -1 : 1;
+  double ip = -charge*(vtx.x()*dir.y()-vtx.y()*dir.x())/sqrt(sqr(dir.x()) + sqr(dir.y()));
+  cout <<"** Computed IP="<<ip<<" vtx_vy="<<vtx.perp()<<endl;
 
   float ptmin = (theVertexFromParticle)? ptMin : theRegionPSet.getParameter<double>("ptMin");
   float dr =           theRegionPSet.getParameter<double>("originRadius");
@@ -100,10 +110,13 @@ vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& 
     double deltaR = (*ireg);
     TrackingRegion * region = 0;
     if (deltaR > 0) {
-      region = new RectangularEtaPhiTrackingRegion( dir, vtx, ptmin,  dr, dz, deltaR, deltaR);
+      region = new RectangularEtaPhiTrackingRegion( dir, vtx, ptmin,  dr, dz, deltaR, deltaR, 1.);
     }
     else {
-      region =  new GlobalTrackingRegion(ptmin,  vtx, dr, dz, precise );
+      GlobalTrackingRegion * g = new GlobalTrackingRegion(ptmin,  vtx, dr, dz, precise );
+      g->setDirection(dir);
+      region = g;
+//      region =  new GlobalTrackingRegion(ptmin,  vtx, dr, dz, precise );
     }
     cout << "Region: " << region->print() << endl;
     result.push_back(region);
