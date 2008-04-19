@@ -69,6 +69,24 @@ Analysis::Analysis( const edm::ParameterSet& conf)
   gHistos.Add(hPurePt_N);
   gHistos.Add(hPurePt_D);
 
+//  gHistos.Add(new TH1D("h_Pt","h_Pt",100, -1.2, 1.2));
+//  gHistos.Add( new TH1D("h_PullPt","h_PullPt",100,-8.,8.));
+//  gHistos.Add( new TH1F("h_Tip","h_Tip",100, -0.06, 0.06) );
+//  gHistos.Add( new TH1F("h_PullTip","h_PullTip",100, -8.0, 8.0) );
+
+  hMap["h_Pt"] = new TH1D("h_Pt","h_Pt",100, -1.2, 1.2);
+  hMap["h_PullPt"] = new TH1D("h_PullPt","h_PullPt",100,-8.,8.);
+  hMap["h_Tip"] = new TH1D("h_Tip","h_Tip",100, -0.06, 0.06);
+  hMap["h_PullTip"] = new TH1D("h_PullTip","h_PullTip",100, -8.0, 8.0);
+  hMap["h_Zip"] = new TH1D("h_Zip","h_Zip",100, -0.08, 0.08);
+  hMap["h_PullZip"] = new TH1D("h_PullZip","h_PullZip",100, -8., 8.0);
+  hMap["h_Cot"] = new TH1D("h_Cot","h_Cot",100, -0.04, 0.04);
+  hMap["h_PullCot"] = new TH1D("h_PullCot","h_PullCot",100, -8., 8.0);
+  hMap["h_chi2"] = new TH1D("h_chi2","h_chi2",1000,0.,10.);
+
+  for (HMap::const_iterator im = hMap.begin(); im != hMap.end(); ++im)  gHistos.Add(im->second); 
+
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -261,9 +279,29 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
     bool matched = false;
     typedef reco::TrackCollection::const_iterator IT;
     for (IT it=tracks.begin(); it!=tracks.end(); it++) {
-//      float pt_rec = (*it).pt();
+      float pt_rec = (*it).pt();
       float eta_rec = (*it).momentum().eta();
-      if ( fabs(eta_gen-eta_rec) < 0.05) matched = true;
+      if ( fabs(eta_gen-eta_rec) < 0.15) matched = true;
+      print(*it);
+//    static_cast<TH1*>(gHistos.FindObject("h_Pt"))->Fill((pt_gen - pt_rec)/pt_gen);
+//    static_cast<TH1*>(gHistos.FindObject("h_PullPt"))->Fill((pt_gen - pt_rec)/(*it).ptError());
+//    static_cast<TH1*>(gHistos.FindObject("h_Tip"))->Fill((*it).d0());
+//    static_cast<TH1*>(gHistos.FindObject("h_PullTip"))->Fill((*it).d0()/(*it).d0Error());
+      hMap["h_Pt"]->Fill((pt_gen - pt_rec)/pt_gen);
+      hMap["h_PullPt"]->Fill((pt_gen - pt_rec)/(*it).ptError());
+      hMap["h_Tip"]->Fill((*it).d0());
+      hMap["h_PullTip"]->Fill((*it).d0()/(*it).d0Error());
+      hMap["h_Zip"]->Fill( (*it).dz()-vertex(&track)->position().z() );
+      hMap["h_PullZip"]->Fill(( (*it).dz()-vertex(&track)->position().z())/(*it).dzError());
+
+      float cosTheta = cos(it->theta());
+      float sinTheta = sin(it->theta());
+      float errLambda2 = sqr( it->lambdaError() );
+      float dCotTheta = cosTheta/sinTheta - 1./tan(track.momentum().theta());
+      hMap["h_Cot"]->Fill(dCotTheta);
+      hMap["h_PullCot"]->Fill(dCotTheta / sqrt(errLambda2)/sqr(sinTheta));
+
+      hMap["h_chi2"]->Fill((*it).chi2());
     }
 
     if (fabs(eta_gen) < 1.4) {
@@ -381,5 +419,19 @@ std::string Analysis::print(const SeedingHit & hit)
   ostringstream str; 
   str <<"r="<<hit.r() <<" phi="<<hit.phi()<<" z="<<hit.z();
   return str.str();
+}
+
+//----------------------------------------------------------------------------------------
+void Analysis::print(const reco::Track & track)
+{
+    cout << "--- RECONSTRUCTED TRACK: " << endl;
+    cout << "\tmomentum: " << track.momentum()
+         << "\tPT: " << track.pt()<<"+/-"<<track.ptError()<< endl;
+    cout << "\tvertex: " << track.vertex()
+         << "\t zip: " <<  track.dz()<<"+/-"<<track.dzError()
+         << "\t tip: " << track.d0()<<"+/-"<<track.d0Error()<< endl;
+    cout << "\t chi2: "<< track.chi2()<<endl;
+    cout << "\tcharge: " << track.charge()<< endl;
+
 }
 

@@ -8,12 +8,8 @@
 <use name=Utilities/Timing>
 <use name=UserCode/konec>
 <use name=RecoPixelVertexing/PixelTrackFitting>
-<use name=RecoTracker/TkMSParametrization>
 
-<library file="MyTest.cc" name=MyTest>
-  <flags EDM_PLUGIN=1>
-</library>
-<library file="PairAnalysis.cc" name=PairAnalysis>
+<library file="OrderedHitsAnalysis.cc" name=OrderedHitsAnalysis>
   <flags EDM_PLUGIN=1>
 </library>
 <library file="TrackAnalysis.cc" name=TrackAnalysis>

@@ -38,10 +38,10 @@ using namespace std;
 using namespace ctfseeding;
 
 
-class PairAnalysis : public edm::EDAnalyzer {
+class OrderedHitsAnalysis : public edm::EDAnalyzer {
 public:
-  explicit PairAnalysis(const edm::ParameterSet& conf);
-  ~PairAnalysis();
+  explicit OrderedHitsAnalysis(const edm::ParameterSet& conf);
+  ~OrderedHitsAnalysis();
   virtual void beginJob(const edm::EventSetup& iSetup);
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
   virtual void endJob() { }
@@ -61,7 +61,7 @@ private:
 };
 
 
-PairAnalysis::PairAnalysis(const edm::ParameterSet& conf) 
+OrderedHitsAnalysis::OrderedHitsAnalysis(const edm::ParameterSet& conf) 
   : theConfig(conf), 
     theGenerator(0), 
    theRegionProducer(0),
@@ -69,20 +69,20 @@ PairAnalysis::PairAnalysis(const edm::ParameterSet& conf)
    theAnalysis(0), 
    hList(0)
 {
-  edm::LogInfo("PairAnalysis")<<" CTORXX";
+  edm::LogInfo("OrderedHitsAnalysis")<<" CTORXX";
 }
 
 
-PairAnalysis::~PairAnalysis() 
+OrderedHitsAnalysis::~OrderedHitsAnalysis() 
 { 
   delete theAnalysis;
   delete theRegionProducer;
   delete theGenerator;
 
-  edm::LogInfo("PairAnalysis")<<" DTOR";
+  edm::LogInfo("OrderedHitsAnalysis")<<" DTOR";
 }
 
-void PairAnalysis::beginJob(const edm::EventSetup& es)
+void OrderedHitsAnalysis::beginJob(const edm::EventSetup& es)
 {
   edm::ParameterSet regfactoryPSet =
       theConfig.getParameter<edm::ParameterSet>("RegionFactoryPSet");
@@ -128,10 +128,10 @@ void PairAnalysis::beginJob(const edm::EventSetup& es)
 }
 
 
-void PairAnalysis::analyze(
+void OrderedHitsAnalysis::analyze(
     const edm::Event& ev, const edm::EventSetup& es)
 {
-  cout <<"*** PairAnalysisA, analyze event: " << ev.id()<<" event count:"<<++eventCount << endl;
+  cout <<"*** OrderedHitsAnalysisA, analyze event: " << ev.id()<<" event count:"<<++eventCount << endl;
 
   edm::ParameterSet assPset = theConfig.getParameter<edm::ParameterSet>("AssociatorPSet");
   TrackerHitAssociator assoc(ev, assPset);
@@ -208,5 +208,5 @@ void PairAnalysis::analyze(
 
 }
 
-DEFINE_FWK_MODULE(PairAnalysis);
+DEFINE_FWK_MODULE(OrderedHitsAnalysis);
 
