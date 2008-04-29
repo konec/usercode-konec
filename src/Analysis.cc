@@ -193,9 +193,10 @@ void Analysis::checkAlgoEfficiency1(const SeedingLayerSets &layersSets, const Or
       if (nmatched == hits.size() ) matched = true;
     }
 
-    if (fabs(eta_gen) < 1.4) {
+    if (fabs(eta_gen) < 2.1 && fabs(eta_gen) > 1.9) {
       hEffAlgoPt_D->Fill(pt_gen+1.e-2);
       if(matched) hEffAlgoPt_N->Fill(pt_gen+1.e-2);
+      if(!matched) cout <<"INEFFICIENCY"<<endl;
     }
     if (pt_gen > 0.9) {
       hEffAlgoEta_D->Fill(eta_gen);
@@ -249,7 +250,7 @@ void Analysis::checkAlgoEfficiency2(const SeedingLayerSets &layersSets, const Or
       }
 
       // pt efficiency
-      if (fabs(eta_gen) < 1.4 ) {
+      if (fabs(eta_gen) < 2.4) {
         hEffAlgoPt_D->Fill(pt_gen+1.e-2);
         if(matched) hEffAlgoPt_N->Fill(pt_gen+1.e-2);
       }
@@ -340,7 +341,8 @@ void Analysis::checkEfficiency( const OrderedSeedingHits & candidates)
       if (nmatched == hits.size() ) matched = true;
     }
 
-    if (fabs(eta_gen) < 1.4) {
+    //if (fabs(eta_gen) < 1.4) {
+    if (fabs(eta_gen) > 1.5 && fabs(eta_gen) < 2.4) {
       hEffPt_D->Fill(pt_gen+1.e-2);
       if(matched) hEffPt_N->Fill(pt_gen+1.e-2);
     }
@@ -363,6 +365,7 @@ unsigned int Analysis::matchedHits(unsigned int trackId, const SeedingHitSet& hi
     const TrackingRecHit * hit = *(it);
     typedef vector<SimHitIdpr> SimTrackIds;
     SimTrackIds simTrackIds = theAssociator->associateHitId(*hit);
+    std::cout <<" ASSOCIATION: hit:"<<hit<<" "<<hit->localPosition()<<" number of SimTrackIds: "<<simTrackIds.size()<<endl;
     bool ok = false;
     for (SimTrackIds::const_iterator ist = simTrackIds.begin(); ist != simTrackIds.end(); ist++) {
       if ( (*ist).first == trackId) ok = true;

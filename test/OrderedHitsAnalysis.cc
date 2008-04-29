@@ -136,7 +136,7 @@ void OrderedHitsAnalysis::analyze(
   edm::ParameterSet assPset = theConfig.getParameter<edm::ParameterSet>("AssociatorPSet");
   TrackerHitAssociator assoc(ev, assPset);
 
-
+/*
   //
   // load hits from disk into memory
   //
@@ -147,6 +147,7 @@ void OrderedHitsAnalysis::analyze(
     for (ISL isl = isls->begin(); isl != isls->end(); isl++) r.hits(ev,es,&(*isl));
   }
 
+*/
 
   // 
   // get regions from producer
@@ -173,7 +174,7 @@ void OrderedHitsAnalysis::analyze(
     //
     // fil histograms
     // 
-    cout <<"Region_idx: "<<iReg<<", number of seeds: " << candidates.size() <<endl;
+    cout <<"Region_idx: "<<iReg<<", number of hit sets: " << candidates.size() <<endl;
     hCPU->Fill( float(iReg), timer.lastMeasurement().real());
     hNumHP->Fill(float(iReg), float(candidates.size()));
     hEffReg_D->Fill(float(iReg)); if(candidates.size() > 0)hEffReg_N->Fill(float(iReg));
@@ -197,7 +198,7 @@ void OrderedHitsAnalysis::analyze(
       
       theAnalysis->init(ev,es,&assoc);
       theAnalysis->checkEfficiency(candidates);
-      theAnalysis->checkAlgoEfficiency2(theLayers, candidates);
+      theAnalysis->checkAlgoEfficiency1(theLayers, candidates);
       hCPUDist->Fill(timer.lastMeasurement().real());
     }
   }

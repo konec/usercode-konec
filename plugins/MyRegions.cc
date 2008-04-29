@@ -54,6 +54,10 @@ vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& 
   double y_vtx = theRegionPSet.getParameter<double>("originYPos");
   double z_vtx = theRegionPSet.getParameter<double>("originZPos");
 
+  double rectOption = -1.;
+  if (theRegionPSet.exists("RectOption")) 
+      rectOption=theRegionPSet.getParameter<double>("RectOption"); 
+
   for (IP ip=simTracks.begin(); ip != simTracks.end(); ip++) {
 
     const SimTrack & track = (*ip);
@@ -110,7 +114,7 @@ vector<TrackingRegion* > MyRegions::regions( const Event& ev, const EventSetup& 
     double deltaR = (*ireg);
     TrackingRegion * region = 0;
     if (deltaR > 0) {
-      region = new RectangularEtaPhiTrackingRegion( dir, vtx, ptmin,  dr, dz, deltaR, deltaR, 1.);
+      region = new RectangularEtaPhiTrackingRegion(dir,vtx,ptmin,dr,dz,deltaR,deltaR,rectOption);
     }
     else {
       GlobalTrackingRegion * g = new GlobalTrackingRegion(ptmin,  vtx, dr, dz, precise );
