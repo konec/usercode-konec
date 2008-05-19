@@ -46,8 +46,8 @@
 #include "RecoTracker/TkMSParametrization/interface/PixelRecoPointRZ.h"
 #include "RecoTracker/TkMSParametrization/interface/PixelRecoLineRZ.h"
 #include "RecoMuon/TrackerSeedGenerator/interface/L1MuonPixelTrackFitter.h"
-#include "RecoMuon/TrackerSeedGenerator/src/Circle.h"
 
+typedef L1MuonPixelTrackFitter::Circle Circle;
 
 #include "R2DTimerObserver.h"
 
@@ -311,6 +311,7 @@ void L1Seeding::analyze(
     GlobalVector dir(dx,dy,dz);
     GlobalPoint vtx(0.,0.,0.);
 
+
     //RectangularEtaPhiTrackingRegion region( dir, vtx, 10.,  0.1, 16., 0.15, 0.35);
     GlobalTrackingRegion region( 5., vtx, 0.1, 16., true);
     theTimer->start();
@@ -322,6 +323,7 @@ void L1Seeding::analyze(
     int numFiltered = 0;
     hNumHP->Fill(2, float(candidates.size()));
     unsigned int nSets = candidates.size();
+
     for (unsigned int ic= 0; ic <nSets; ic++) {
       typedef vector<ctfseeding::SeedingHit> RecHits;
       const RecHits & hits = candidates[ic].hits();
