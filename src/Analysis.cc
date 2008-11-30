@@ -274,6 +274,7 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
     const SimTrack & track = (*ip); 
     bool selected = select(track);
     if (!selected) continue;
+    std::cout << " vertex: "<<vertex(&track)->position() << std::endl;
     float eta_gen = track.momentum().eta();
     float pt_gen = track.momentum().pt();
 
@@ -305,7 +306,7 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
       hMap["h_chi2"]->Fill((*it).chi2());
     }
 
-    if (fabs(eta_gen) < 1.4) {
+    if (fabs(eta_gen) < 2.1) {
       cout <<" pt_gen is: " << pt_gen << endl;
       hEffPt_D->Fill(pt_gen+1.e-2);
       if(matched) hEffPt_N->Fill(pt_gen+1.e-2);
