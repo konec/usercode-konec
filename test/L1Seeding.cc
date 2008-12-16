@@ -87,7 +87,6 @@ public:
   virtual void endJob() { }
 private:
   void bookBendingHisto(float eta, float pt);
-  TH1D *getBendingHisto(float eta, float pt);
 private:
   edm::ParameterSet theConfig;
   OrderedHitsGenerator * theGenerator;
@@ -182,6 +181,26 @@ void L1Seeding::beginJob(const edm::EventSetup& es)
 
   hTMP = new TH1D("hTMP","hTMP",100,0.,25.);
 
+  gHistos.Add(hEffCharge_N);
+  gHistos.Add(hEffCharge_D);
+  gHistos.Add(hEtaDist);
+  gHistos.Add(hPhiDist);
+  gHistos.Add(hPt);
+  gHistos.Add(hTIP);
+  gHistos.Add(hZIP);
+  gHistos.Add(hEta);
+  gHistos.Add(hPhi);
+  gHistos.Add(hTMP);
+
+  typedef HistoMap::const_iterator IHM;
+  for (IHM i=theL1BendingHisto.begin(); i!=theL1BendingHisto.end();++i) gHistos.Add(i->second);
+  for (IHM i=thePtRes.begin(); i!=thePtRes.end();++i) gHistos.Add(i->second);
+  for (IHM i=thePhiRes.begin(); i!=thePhiRes.end();++i) gHistos.Add(i->second);
+  for (IHM i=theCotRes.begin(); i!=theCotRes.end();++i) gHistos.Add(i->second);
+  for (IHM i=theTipRes.begin(); i!=theTipRes.end();++i) gHistos.Add(i->second);
+  for (IHM i=theZipRes.begin(); i!=theZipRes.end();++i) gHistos.Add(i->second);
+
+
 }
 
 
@@ -190,7 +209,7 @@ void L1Seeding::bookBendingHisto(float eta, float pt)
   HistoKey key;
 
   key = HistoKey("hDPhiL1",eta,pt);
-  float phi = theFitter.getBending(eta,pt,1);
+  float phi = theFitter.getBending(1./pt,eta,1);
   double dphi = max(0.2,0.5*fabs(phi));
   double phi_min = phi-dphi;
   double phi_max = phi+dphi;
@@ -220,18 +239,18 @@ void L1Seeding::bookBendingHisto(float eta, float pt)
 }
 
 
-TH1D * L1Seeding::getBendingHisto(float eta, float pt)
-{
-  HistoKey key("hDPhiL1",eta,pt);
-  HistoMap::iterator im = theL1BendingHisto.find(key);
-  if (im != theL1BendingHisto.end() ) {
-    cout <<"ALREADY EXISTING BENDING HISTO:" <<key.name().c_str()<<endl;
-    return im->second;
-  } else {
-   cout <<"*** getBendingHisto ERROR - histogram not found!" << endl;
-   return 0;
-  }
-}
+//TH1D * L1Seeding::getBendingHisto(float eta, float pt)
+//{
+//  HistoKey key("hDPhiL1",eta,pt);
+//  HistoMap::iterator im = theL1BendingHisto.find(key);
+//  if (im != theL1BendingHisto.end() ) {
+//    cout <<"ALREADY EXISTING BENDING HISTO:" <<key.name().c_str()<<endl;
+//    return im->second;
+//  } else {
+//   cout <<"*** getBendingHisto ERROR - histogram not found!" << endl;
+//   return 0;
+//  }
+//}
 
 //TH1D * L1Seeding::getBendingHisto(float eta, float pt)
 //{
@@ -276,7 +295,8 @@ void L1Seeding::analyze(
   // Get GMTReadoutCollection
 
   edm::Handle<L1MuGMTReadoutCollection> gmtrc_handle;
-  ev.getByLabel("l1GmtEmulDigis",gmtrc_handle);
+//  ev.getByLabel("l1GmtEmulDigis",gmtrc_handle);
+  ev.getByType(gmtrc_handle);
   L1MuGMTReadoutCollection const* gmtrc = gmtrc_handle.product();
   vector<L1MuGMTReadoutRecord> gmt_records = gmtrc->getRecords();
   vector<L1MuGMTReadoutRecord>::const_iterator igmtrr;
@@ -289,8 +309,8 @@ void L1Seeding::analyze(
     nMuons++;
     L1MuGMTExtendedCand & muon = exc.front();
 
-    
     hEffCharge_D->Fill(pt_gen);
+
     if (charge_gen==muon.charge()) hEffCharge_N->Fill(pt_gen);
 
     float phi_rec = muon.phiValue()+0.021817;
@@ -306,7 +326,6 @@ void L1Seeding::analyze(
     
     float dx = cos(phi_rec);
     float dy = sin(phi_rec);
-    cout <<" eta: " << muon.etaValue() << endl;
     float dz = sinh(muon.etaValue());
     GlobalVector dir(dx,dy,dz);
     GlobalPoint vtx(0.,0.,0.);

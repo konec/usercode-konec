@@ -3,7 +3,23 @@ process = cms.Process("Analysis")
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring(
-     'file:data/SingleMuL1_10m.root')
+      'file:data/SingleMuL1_1000m_B.root' 
+#     'file:data/SingleMuL1_6p.root',
+#     'file:data/SingleMuL1_7p.root',
+#     'file:data/SingleMuL1_8p.root',
+#     'file:data/SingleMuL1_9p.root',
+#     'file:data/SingleMuL1_10p.root',
+#     'file:data/SingleMuL1_12p.root',
+#     'file:data/SingleMuL1_15p.root',
+#     'file:data/SingleMuL1_20p.root',
+#     'file:data/SingleMuL1_25p.root',
+#     'file:data/SingleMuL1_30p.root',
+#     'file:data/SingleMuL1_40p.root',
+#     'file:data/SingleMuL1_50p.root',
+#     'file:data/SingleMuL1_60p.root',
+#     'file:data/SingleMuL1_80p.root',
+#     'file:data/SingleMuL1_100p.root'
+  )
 )
 
 process.MessageLogger = cms.Service("MessageLogger",
@@ -26,13 +42,6 @@ from RecoLocalTracker.Configuration.RecoLocalTracker_cff import *
 process.load("RecoTracker.Configuration.RecoTracker_cff")
 from RecoTracker.Configuration.RecoTracker_cff import *
 
-process.load("RecoTracker.IterativeTracking.FirstStep_cff")
-from RecoTracker.IterativeTracking.FirstStep_cff import *
-newTrackCandidateMaker.src = cms.InputTag('hltL3TrajectorySeedFromL1')
-
-
-process.load("RecoMuon.TrackerSeedGenerator.TSGFromL1_cff")
-
 process.load("RecoPixelVertexing.PixelTrackFitting.PixelTracks_cff")
 process.load("RecoPixelVertexing.Configuration.RecoPixelVertexing_cff")
 
@@ -43,16 +52,18 @@ process.load("RecoPixelVertexing.Configuration.RecoPixelVertexing_cff")
 #from RecoPixelVertexing.PixelTriplets.PixelTripletLargeTipGenerator_cfi import *
 #process.pixelTracks.OrderedHitsFactoryPSet.GeneratorPSet = cms.PSet( PixelTripletLargeTipGenerator )
 
-
 #process.pixelTracks.OrderedHitsFactoryPSet.GeneratorPSet.useFixedPreFiltering = cms.bool(True)
 #process.pixelTracks.RegionFactoryPSet.RegionPSet.ptMin = cms.double(1.00)
 #process.pixelTracks.RegionFactoryPSet.RegionPSet.originRadius = cms.double(0.001)
 #process.pixelTracks.RegionFactoryPSet.RegionPSet.originHalfLength = cms.double(0.001)
 
-process.analysis = cms.EDFilter("TrackAnalysis",
-#  TrackCollection = cms.string("pixelTracks"),
-   TrackCollection = cms.string("preFilterZeroStepTracks"),
-#  TrackCollection = cms.string("generalTracks"),
+process.l1seeding = cms.EDFilter("L1Seeding",
+
+  OrderedHitsFactoryPSet = cms.PSet(
+    ComponentName = cms.string("StandardHitPairGenerator"),
+    SeedingLayers = cms.string("PixelLayerPairs")
+  ),
+
   AssociatorPSet = cms.PSet(
     associateStrip = cms.bool(False),
     associatePixel = cms.bool(False),
@@ -65,6 +76,7 @@ process.analysis = cms.EDFilter("TrackAnalysis",
         "TrackerHitsPixelBarrelLowTof","TrackerHitsPixelBarrelHighTof",
         "TrackerHitsPixelEndcapLowTof","TrackerHitsPixelEndcapHighTof")
   ),
+
   AnalysisPSet = cms.PSet(
      useParticleId = cms.int32(13),
      ptMinLeadingTrack = cms.double(0.9)
@@ -74,6 +86,6 @@ process.analysis = cms.EDFilter("TrackAnalysis",
 
 #process.p = cms.Path(pixeltrackerlocalreco+process.pixelTracks+process.analysis)
 #process.p = cms.Path(trackerlocalreco+process.recopixelvertexing*ckftracks+process.analysis)
-process.p=cms.Path(trackerlocalreco+process.hltL3TrajectorySeedFromL1*newTrackCandidateMaker*preFilterZeroStepTracks*process.analysis)
+process.p=cms.Path(trackerlocalreco+process.l1seeding)
 
 

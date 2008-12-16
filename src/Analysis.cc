@@ -119,12 +119,12 @@ const SimTrack * Analysis::bestTrack() const
     if ( abs(track.type()) != particleId) continue;
 
     float eta_gen = track.momentum().eta();
-    if ( fabs(eta_gen) > 1.4 ) continue;
+    if ( fabs(eta_gen) > 2.4 ) continue;
 
     float pt_gen = track.momentum().pt();
     if (pt_gen < ptMin) continue;
 
-    if (sqrt(vertex(&track)->position().perp2()) > 0.1) continue;
+    if (sqrt(vertex(&track)->position().perp2()) > 0.2) continue;
 
     myTrack = &track;
     ptMin = pt_gen;
