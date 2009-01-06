@@ -332,6 +332,7 @@ void Analysis::checkEfficiency( const OrderedSeedingHits & candidates)
     if (!selected) continue;
     float eta_gen = track.momentum().eta();
     float pt_gen = track.momentum().pt();
+    std::cout<<"HERE"<<std::endl;
 //    print(track);
 
     bool matched = false;
@@ -340,6 +341,7 @@ void Analysis::checkEfficiency( const OrderedSeedingHits & candidates)
       const RecHits & hits = candidates[ic].hits();
       unsigned int nmatched = matchedHits(track.trackId(), hits); 
       if (nmatched == hits.size() ) matched = true;
+      std::cout <<"nmatched: " <<nmatched<<" hits: " << hits.size() <<std::endl;
     }
 
     //if (fabs(eta_gen) < 1.4) {

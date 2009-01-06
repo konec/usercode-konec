@@ -197,7 +197,7 @@ void OrderedHitsAnalysis::analyze(
     if (iReg== (int)regions.size()-1) { 
       
       theAnalysis->init(ev,es,&assoc);
-      theAnalysis->checkEfficiency(candidates);
+//      theAnalysis->checkEfficiency(candidates);
       theAnalysis->checkAlgoEfficiency1(theLayers, candidates);
       hCPUDist->Fill(timer.lastMeasurement().real());
     }
