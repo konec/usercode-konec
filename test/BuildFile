@@ -1,7 +1,6 @@
 <use name=root>
 
 <use name=FWCore/Framework>
-<use name=Foundation/PluginManager>
 <use name=SimDataFormats/TrackerDigiSimLink>
 <use name=SimTracker/TrackerHitAssociation>
 <use name=FWCore/ParameterSet>

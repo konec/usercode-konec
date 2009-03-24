@@ -21,3 +21,9 @@ DEFINE_EDM_PLUGIN(OrderedHitsGeneratorFactory, SimpleSingleHitGenerator, "Simple
 #include "FWCore/Framework/interface/eventsetupdata_registration_macro.h"
 #include "SimpleLayersESProducer.h"
 DEFINE_FWK_EVENTSETUP_MODULE(SimpleLayersESProducer);
+
+#include "OrbitFilter.h"
+DEFINE_FWK_MODULE(OrbitFilter);
+
+#include "CSCFilter.h"
+DEFINE_ANOTHER_FWK_MODULE(CSCFilter);
