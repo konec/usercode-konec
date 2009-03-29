@@ -133,21 +133,21 @@ void OrderedHitsAnalysis::analyze(
 {
   cout <<"*** OrderedHitsAnalysisA, analyze event: " << ev.id()<<" event count:"<<++eventCount << endl;
 
-  edm::ParameterSet assPset = theConfig.getParameter<edm::ParameterSet>("AssociatorPSet");
-  TrackerHitAssociator assoc(ev, assPset);
+//  edm::ParameterSet assPset = theConfig.getParameter<edm::ParameterSet>("AssociatorPSet");
+//  TrackerHitAssociator assoc(ev, assPset);
 
-/*
   //
   // load hits from disk into memory
   //
+/*
   typedef SeedingLayerSets::const_iterator ISLS;
   typedef SeedingLayers::const_iterator ISL;
   GlobalTrackingRegion r;
   for (ISLS isls =theLayers.begin(); isls != theLayers.end(); isls++) {
     for (ISL isl = isls->begin(); isl != isls->end(); isl++) r.hits(ev,es,&(*isl));
   }
-
 */
+
 
   // 
   // get regions from producer
@@ -175,6 +175,12 @@ void OrderedHitsAnalysis::analyze(
     // fil histograms
     // 
     cout <<"Region_idx: "<<iReg<<", number of hit sets: " << candidates.size() <<endl;
+
+
+    for (unsigned int i=0; i<candidates.size();++i) {  
+      std::cout <<"my set["<<i<<"] at: " 
+        << candidates[i].size() << endl; //->localPosition()<<endl;
+    }
     hCPU->Fill( float(iReg), timer.lastMeasurement().real());
     hNumHP->Fill(float(iReg), float(candidates.size()));
     hEffReg_D->Fill(float(iReg)); if(candidates.size() > 0)hEffReg_N->Fill(float(iReg));
@@ -196,15 +202,14 @@ void OrderedHitsAnalysis::analyze(
     //
     if (iReg== (int)regions.size()-1) { 
       
-      theAnalysis->init(ev,es,&assoc);
+//      theAnalysis->init(ev,es,&assoc);
 //      theAnalysis->checkEfficiency(candidates);
-      theAnalysis->checkAlgoEfficiency1(theLayers, candidates);
+//      theAnalysis->checkAlgoEfficiency1(theLayers, candidates);
       hCPUDist->Fill(timer.lastMeasurement().real());
     }
   }
 
   for (Regions::const_iterator ir=regions.begin(); ir != regions.end(); ++ir) delete *ir;
-
 
 
 }

@@ -65,7 +65,8 @@ SeedingHitSet AnalysisOrderedHitsInLayers::getHitSet() const
   SeedingHitSet set;
   for (unsigned int il = 0; il < theIndexCounters.size(); ++il) {
     const SeedingHitSet & layerHits = theHitsInLayers[il];
-    set.add(layerHits[ theIndexCounters[il] ]);
+/// FIXME: compilation fix! DOES NOT WORK
+//    set.add(layerHits[ theIndexCounters[il] ]);
   } 
   return set;
 }

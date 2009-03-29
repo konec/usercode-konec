@@ -74,17 +74,19 @@ void TrackAnalysis::analyze(
   cout <<"*** TrackAnalysisA, analyze event: " << ev.id()<<" event count:"<<++eventCount << endl;
 
   edm::ParameterSet assPset = theConfig.getParameter<edm::ParameterSet>("AssociatorPSet");
-  TrackerHitAssociator assoc(ev, assPset);
+//  TrackerHitAssociator assoc(ev, assPset);
 
   edm::Handle<reco::TrackCollection> trackCollection;
   std::string collectionLabel = theConfig.getParameter<std::string>("TrackCollection");
   ev.getByLabel(collectionLabel,trackCollection);
-  const reco::TrackCollection tracks = *(trackCollection.product());
-
+  reco::TrackCollection tracks = *(trackCollection.product());
   cout <<" number of tracks: " << tracks.size() << endl;
+  typedef reco::TrackCollection::const_iterator IT;
+  for (IT it = tracks.begin(); it !=tracks.end(); ++it) Analysis::print(*it);
 
-  theAnalysis->init(ev,es,&assoc);
-  theAnalysis->checkEfficiency(tracks);
+
+//  theAnalysis->init(ev,es,&assoc);
+//  theAnalysis->checkEfficiency(tracks);
 
 
 }

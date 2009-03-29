@@ -344,12 +344,9 @@ void L1Seeding::analyze(
     unsigned int nSets = candidates.size();
 
     for (unsigned int ic= 0; ic <nSets; ic++) {
-      typedef vector<ctfseeding::SeedingHit> RecHits;
-      const RecHits & hits = candidates[ic].hits();
-      float r0 = hits[0].r();
-      float r1 = hits[1].r();
-      GlobalPoint p0(r0*cos(hits[0].phi()), r0*sin(hits[0].phi()), hits[0].z());
-      GlobalPoint p1(r1*cos(hits[1].phi()), r1*sin(hits[1].phi()), hits[1].z());
+      const SeedingHitSet & hits = candidates[ic];
+      GlobalPoint p0 =  hits[0]->globalPosition();
+      GlobalPoint p1 =  hits[1]->globalPosition();
       PixelRecoLineRZ line(p0,p1);
 
       double phi_vtx = (p1-p0).phi();

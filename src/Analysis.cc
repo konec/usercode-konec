@@ -187,10 +187,11 @@ void Analysis::checkAlgoEfficiency1(const SeedingLayerSets &layersSets, const Or
     bool matched = false;
     unsigned int nSets = candidates.size();
     for (unsigned int ic= 0; ic <nSets; ic++) {
-      typedef vector<ctfseeding::SeedingHit> RecHits;
-      const RecHits & hits = candidates[ic].hits();
-      unsigned int nmatched = matchedHits(track.trackId(), hits);
-      if (nmatched == hits.size() ) matched = true;
+      typedef SeedingHitSet::RecHits RecHits;
+//      const RecHits & hits = candidates[ic].hits();
+      unsigned int nmatched = matchedHits(track.trackId(),  candidates[ic]);
+      if (nmatched == candidates[ic].size() ) matched = true;
+//      if (nmatched == hits.size() ) matched = true;
     }
 
     if (fabs(eta_gen) < 2.1 && fabs(eta_gen) > 1.9) {
@@ -228,8 +229,9 @@ void Analysis::checkAlgoEfficiency2(const SeedingLayerSets &layersSets, const Or
       while ( hitsInLayers.next() ) { 
 
         SeedingHitSet layerHitSet = hitsInLayers.getHitSet();
-        unsigned int  nmatched = matchedHits(track.trackId(), layerHitSet.hits());
-        if (nmatched == layerHitSet.size() ) layerHitSets.push_back(layerHitSet);
+//FIXME - NOT WORK!
+//        unsigned int  nmatched = matchedHits(track.trackId(), layerHitSet.hits());
+//        if (nmatched == layerHitSet.size() ) layerHitSets.push_back(layerHitSet);
 //        cout <<"matched hits: " << nmatched << endl;
 //        cout <<" Layer Hits : " <<endl;
 //        for (int i=0; i<layerHitSet.size();i++) cout << print(layerHitSet.hits()[i])<<endl;
@@ -324,7 +326,6 @@ void Analysis::checkEfficiency( const OrderedSeedingHits & candidates)
 {
   typedef  SimTrackContainer::const_iterator IP;
 
-  typedef vector<ctfseeding::SeedingHit> RecHits;
 
   for (IP ip=theSimTracks.begin(); ip != theSimTracks.end(); ip++) {
     const SimTrack & track = (*ip); 
@@ -338,10 +339,9 @@ void Analysis::checkEfficiency( const OrderedSeedingHits & candidates)
     bool matched = false;
     unsigned int nSets = candidates.size();
     for (unsigned int ic= 0; ic <nSets; ic++) {
-      const RecHits & hits = candidates[ic].hits();
-      unsigned int nmatched = matchedHits(track.trackId(), hits); 
-      if (nmatched == hits.size() ) matched = true;
-      std::cout <<"nmatched: " <<nmatched<<" hits: " << hits.size() <<std::endl;
+      unsigned int nmatched = matchedHits(track.trackId(), candidates[ic]); 
+      if (nmatched == candidates[ic].size() ) matched = true;
+      std::cout <<"nmatched: " <<nmatched<<" hits: " << candidates[ic].size() <<std::endl;
     }
 
     //if (fabs(eta_gen) < 1.4) {
@@ -362,10 +362,8 @@ void Analysis::checkEfficiency( const OrderedSeedingHits & candidates)
 unsigned int Analysis::matchedHits(unsigned int trackId, const SeedingHitSet& hitset) 
 {
   unsigned int nmatched = 0;
-  typedef vector<ctfseeding::SeedingHit> RecHits;
-  const RecHits & hits = hitset.hits(); 
-  for (RecHits::const_iterator it = hits.begin(); it != hits.end(); it++) {
-    const TrackingRecHit * hit = *(it);
+  for (unsigned int ih=0; ih < hitset.size(); ih++) {
+    const TrackingRecHit * hit = hitset[ih]->hit();
     typedef vector<SimHitIdpr> SimTrackIds;
     SimTrackIds simTrackIds = theAssociator->associateHitId(*hit);
     std::cout <<" ASSOCIATION: hit:"<<hit<<" "<<hit->localPosition()<<" number of SimTrackIds: "<<simTrackIds.size()<<endl;
@@ -384,8 +382,8 @@ bool Analysis::compareHitSets(const SeedingHitSet& hits1, const SeedingHitSet& h
   unsigned int size = hits1.size();
   if (size != hits2.size() ) return false;
   for (unsigned int i = 0; i < size; ++i) {
-    const TrackingRecHit* trh1 = hits1[i];
-    const TrackingRecHit* trh2 = hits2[i];
+    const TrackingRecHit* trh1 = hits1[i]->hit();
+    const TrackingRecHit* trh2 = hits2[i]->hit();
     if (trh1 != trh2) return false;
   }
   return true; 
