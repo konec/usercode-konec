@@ -4,13 +4,15 @@
 using namespace ctfseeding;
 using namespace std;
 
+typedef TransientTrackingRecHit::ConstRecHitPointer Hit;
+
 AnalysisOrderedHitsInLayers::AnalysisOrderedHitsInLayers(
      const SeedingLayers& layers, const edm::Event& ev, const edm::EventSetup& es)
   : theFirstEvent(true), theIndexCounters(layers.size(), 0)
 {
   typedef vector<SeedingLayer>::const_iterator IL;
   for (IL il = layers.begin(); il != layers.end(); il++) {
-    vector<SeedingHit> hits = (*il).hits(ev,es);
+    vector<Hit> hits = (*il).hits(ev,es);
     theHitsInLayers.push_back(hits);
   }
 //  cout <<"** HITS: ";

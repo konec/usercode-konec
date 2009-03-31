@@ -42,7 +42,6 @@ public:
 
   static void print(const SimTrack & track) ;
   static void print(const reco::Track & track) ;
-  static std::string print(const ctfseeding::SeedingHit & hit);
 private:
   unsigned int matchedHits(unsigned int trackId, const SeedingHitSet& hits);
   bool select(const SimTrack & track) const;

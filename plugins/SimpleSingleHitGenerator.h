@@ -17,11 +17,12 @@ class SimpleSingleHitGenerator : public OrderedHitsGenerator {
 private:
   class SimpleOrderedHits : public OrderedSeedingHits {
   public:
+    typedef TransientTrackingRecHit::ConstRecHitPointer Hit;
     virtual ~SimpleOrderedHits(){}
     virtual unsigned int size() const  { return theHitSets.size(); }
     virtual const SeedingHitSet & operator[](unsigned int i) const { return theHitSets[i]; }
-    void add( const ctfseeding::SeedingHit & hit) {
-      SeedingHitSet::Hits hitSet(1,hit);
+    void add( const Hit & hit) {
+      std::vector<Hit> hitSet(1,hit);
       theHitSets.push_back(hitSet);
     }
   private:

@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 process = cms.Process("Analysis")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10))
 process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring(
 #     'file:data/SingleMuL1_10m.root'
 #'file:SingleMuPt10_cfi_GEN_SIM_DIGI_L1_DIGI2RAW_RAW2DIGI_RECO.root'

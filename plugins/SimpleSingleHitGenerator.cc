@@ -9,6 +9,7 @@
 using namespace std;
 using namespace ctfseeding;
 
+typedef TransientTrackingRecHit::ConstRecHitPointer Hit;
 
 const OrderedSeedingHits & SimpleSingleHitGenerator::run(const TrackingRegion& region, 
     const edm::Event & ev, const edm::EventSetup& es)
@@ -18,13 +19,12 @@ const OrderedSeedingHits & SimpleSingleHitGenerator::run(const TrackingRegion& r
   for (ctfseeding::SeedingLayerSets::const_iterator ils = theLayers.begin();
       ils != theLayers.end(); ils++) {
     const SeedingLayer & layer = (*ils).front();
-    typedef std::vector<ctfseeding::SeedingHit> SH; 
+    typedef std::vector<Hit> SH; 
     SH htmp = region.hits(ev,es,&layer);
     for (SH::const_iterator ith = htmp.begin(); ith != htmp.end(); ith++) {
-        const SeedingHit & hit = *ith;
-        const TrackingRecHit * trh = hit;
+        const TrackingRecHit * trh = (*ith)->hit();
         std::cout <<"RecHit at: " << trh<<" localPosiont: " << trh->localPosition()<<endl;
-        theOrederedHits.add( hit );
+        theOrederedHits.add( *ith);
     }
   } 
   std::cout <<"HERE my GENERATOR!!!!, hits: " << theOrederedHits.size() << endl;

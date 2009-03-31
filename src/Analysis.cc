@@ -36,6 +36,7 @@ using namespace edm;
 using namespace ctfseeding;
 
 template <class T> T sqr( T t) {return t*t;}
+typedef TransientTrackingRecHit::ConstRecHitPointer Hit;
 
 //----------------------------------------------------------------------------------------
 Analysis::Analysis( const edm::ParameterSet& conf)
@@ -178,7 +179,7 @@ void Analysis::checkAlgoEfficiency1(const SeedingLayerSets &layersSets, const Or
     int nHitsInLayes = 0;
     typedef vector<SeedingLayer>::const_iterator IL;
     for (IL il = layers.begin(); il != layers.end(); il++) {
-      vector<SeedingHit> hits = (*il).hits(*theEvent,*theSetup);
+      vector<Hit> hits = (*il).hits(*theEvent,*theSetup);
       int nmatched = matchedHits(track.trackId(), hits);
       if (nmatched > 0) nHitsInLayes++; 
     }
@@ -270,7 +271,7 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
 {
   typedef  SimTrackContainer::const_iterator IP;
 
-  typedef vector<ctfseeding::SeedingHit> RecHits;
+  typedef SeedingHitSet::RecHits RecHits;
 
   for (IP ip=theSimTracks.begin(); ip != theSimTracks.end(); ip++) {
     const SimTrack & track = (*ip); 
@@ -418,12 +419,12 @@ void Analysis::print(const SimTrack & track)
 
 }
 //----------------------------------------------------------------------------------------
-std::string Analysis::print(const SeedingHit & hit) 
-{
-  ostringstream str; 
-  str <<"r="<<hit.r() <<" phi="<<hit.phi()<<" z="<<hit.z();
-  return str.str();
-}
+//std::string Analysis::print(const SeedingHit & hit) 
+//{
+//  ostringstream str; 
+//  str <<"r="<<hit.r() <<" phi="<<hit.phi()<<" z="<<hit.z();
+//  return str.str();
+//}
 
 //----------------------------------------------------------------------------------------
 void Analysis::print(const reco::Track & track)
