@@ -57,7 +57,7 @@ private:
   std::vector<SimTrack> theSimTracks;
   std::vector<SimVertex> theSimVertices;
 
-  TH1D *hEffPt_N, *hEffPt_D, *hEffAlgoPt_N, *hEffAlgoPt_D;
+  TH1D *hEffPt_N, *hEffPt_D, *hEffLPt_N, *hEffLPt_D, *hEffAlgoPt_N, *hEffAlgoPt_D;
   TH1D *hEffEta_N, *hEffEta_D, *hEffAlgoEta_N, *hEffAlgoEta_D;
   TH1D *hEffPhi_N, *hEffPhi_D;
   TH1D *hPurePt_N, *hPurePt_D;

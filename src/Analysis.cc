@@ -50,6 +50,8 @@ Analysis::Analysis( const edm::ParameterSet& conf)
   hEffPhi_D = new TH1D("hEffPhi_D","hEffPhi_D",63,-3.15,3.15);
   hEffPt_N = new TH1D("hEffPt_N","hEffPt_N",1001,0.0,100.1);
   hEffPt_D = new TH1D("hEffPt_D","hEffPt_D",1001,0.0,100.1);
+  hEffLPt_N = new TH1D("hEffLPt_N","hEffLPt_N",201,0.0,2.01);
+  hEffLPt_D = new TH1D("hEffLPt_D","hEffLPt_D",201,0.0,2.01);
   hEffAlgoPt_D = new TH1D("hEffAlgoPt_D","hEffAlgoPt_D",101,0.0,10.1);
   hEffAlgoPt_N = new TH1D("hEffAlgoPt_N","hEffAlgoPt_N",101,0.0,10.1);
   hPurePt_N =  new TH1D("hPurePt_N","hPurePt_N",101,0.0,10.1);
@@ -65,6 +67,8 @@ Analysis::Analysis( const edm::ParameterSet& conf)
   gHistos.Add(hEffPhi_D);
   gHistos.Add(hEffPt_N);
   gHistos.Add(hEffPt_D);
+  gHistos.Add(hEffLPt_N);
+  gHistos.Add(hEffLPt_D);
   gHistos.Add(hEffAlgoPt_D);
   gHistos.Add(hEffAlgoPt_N);
   gHistos.Add(hPurePt_N);
@@ -311,8 +315,10 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
 
     if (fabs(eta_gen) < 2.1) {
       cout <<" pt_gen is: " << pt_gen << endl;
-      hEffPt_D->Fill(pt_gen+1.e-2);
-      if(matched) hEffPt_N->Fill(pt_gen+1.e-2);
+      hEffPt_D->Fill(pt_gen+1.e-4);
+      hEffLPt_D->Fill(pt_gen+1.e-4);
+      if(matched) hEffPt_N->Fill(pt_gen+1.e-4);
+      if(matched) hEffLPt_N->Fill(pt_gen+1.e-4);
     }
     if (pt_gen > 0.9) {
       hEffEta_D->Fill(eta_gen);

@@ -81,12 +81,14 @@ void TrackAnalysis::analyze(
   ev.getByLabel(collectionLabel,trackCollection);
   reco::TrackCollection tracks = *(trackCollection.product());
   cout <<" number of tracks: " << tracks.size() << endl;
-  typedef reco::TrackCollection::const_iterator IT;
-  for (IT it = tracks.begin(); it !=tracks.end(); ++it) Analysis::print(*it);
+
+//  typedef reco::TrackCollection::const_iterator IT;
+//  for (IT it = tracks.begin(); it !=tracks.end(); ++it) Analysis::print(*it);
 
 
 //  theAnalysis->init(ev,es,&assoc);
-//  theAnalysis->checkEfficiency(tracks);
+  theAnalysis->init(ev,es,0);
+  theAnalysis->checkEfficiency(tracks);
 
 
 }

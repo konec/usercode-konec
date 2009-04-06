@@ -25,6 +25,7 @@ private:
       std::vector<Hit> hitSet(1,hit);
       theHitSets.push_back(hitSet);
     }
+    virtual void clear() { theHitSets.clear(); } 
   private:
     std::vector<SeedingHitSet> theHitSets;   
   };

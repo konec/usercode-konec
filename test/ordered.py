@@ -19,8 +19,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10))
 
 process.source = cms.Source ("PoolSource",fileNames = cms.untracked.vstring(
 #'/store/relval/CMSSW_3_1_0_pre4/RelValSingleMuPt10/GEN-SIM-DIGI-RECO/IDEAL_30X_v1/0001/189AF476-A516-DE11-8357-001A92810AA8.root',
-  'file:SingleMuPt10_cfi_GEN_SIM_DIGI_L1_DIGI2RAW_RAW2DIGI_RECO.root'
-# 'file:SingleMu_10m.root'
+ 'rfio:/castor/cern.ch/user/k/konec/cmssw31x/SingleMu_5m0.root'
 ))
 
 process.simplelayers = cms.ESProducer("SimpleLayersESProducer",
