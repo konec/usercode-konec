@@ -72,9 +72,9 @@ seedsFromProtoTracks.InputCollection = cms.InputTag("pixel3PrimTracks")
 #seedsFromProtoTracks.useProtoTrackKinematics = cms.bool(True)
 
 
-#pixelTracks.OrderedHitsFactoryPSet.GeneratorPSet = cms.PSet( PixelTripletNoTipGenerator )
-#pixelTracks.FilterPSet.ComponentName = cms.string("none")
-#pixelTracks.CleanerPSet.ComponentName = cms.string("none")
+pixelTracks.OrderedHitsFactoryPSet.GeneratorPSet = cms.PSet( PixelTripletNoTipGenerator )
+pixelTracks.FilterPSet.ComponentName = cms.string("none")
+pixelTracks.CleanerPSet.ComponentName = cms.string("none")
 #pixelTracks.RegionFactoryPSet.RegionPSet.ptMin = cms.double(0.04)
 
 #pixelTracks.OrderedHitsFactoryPSet.GeneratorPSet = cms.PSet(
@@ -88,26 +88,26 @@ seedsFromProtoTracks.InputCollection = cms.InputTag("pixel3PrimTracks")
 #        )
 
 
-pixelTracks.RegionFactoryPSet = cms.PSet(
-        ComponentName = cms.string('GlobalTrackingRegionWithVerticesProducer'),
-        RegionPSet = cms.PSet(
-            precise       = cms.bool(True),
-            beamSpot      = cms.InputTag("offlineBeamSpot"),
-            originRadius  = cms.double(0.2),
-            sigmaZVertex  = cms.double(3.0),
-            useFixedError = cms.bool(True),
-            fixedError    = cms.double(0.2),
+#pixelTracks.RegionFactoryPSet = cms.PSet(
+#        ComponentName = cms.string('GlobalTrackingRegionWithVerticesProducer'),
+#        RegionPSet = cms.PSet(
+#            precise       = cms.bool(True),
+#            beamSpot      = cms.InputTag("offlineBeamSpot"),
+#            originRadius  = cms.double(0.2),
+#            sigmaZVertex  = cms.double(3.0),
+#            useFixedError = cms.bool(True),
+#            fixedError    = cms.double(0.2),
 
-            useFoundVertices = cms.bool(False),
-            VertexCollection = cms.InputTag("pixelVertices"),
-            ptMin            = cms.double(0.075),
-            nSigmaZ          = cms.double(3.0)
-        )
-    ) 
+#            useFoundVertices = cms.bool(False),
+#            VertexCollection = cms.InputTag("pixelVertices"),
+#            ptMin            = cms.double(0.075),
+#            nSigmaZ          = cms.double(3.0)
+#        )
+#    ) 
 
-pixelTracks.FilterPSet = cms.PSet( ComponentName = cms.string('ClusterShapeTrackFilter'), useFilter     = cms.bool(True))
-pixelTracks.CleanerPSet = cms.PSet( ComponentName = cms.string('TrackCleaner'))
-pixelTracks.FitterPSet = cms.PSet( ComponentName = cms.string('TrackFitter'), TTRHBuilder   = cms.string('TTRHBuilderWithoutAngle4PixelTriplets'))
+#pixelTracks.FilterPSet = cms.PSet( ComponentName = cms.string('ClusterShapeTrackFilter'), useFilter     = cms.bool(True))
+#pixelTracks.CleanerPSet = cms.PSet( ComponentName = cms.string('TrackCleaner'))
+#pixelTracks.FitterPSet = cms.PSet( ComponentName = cms.string('TrackFitter'), TTRHBuilder   = cms.string('TTRHBuilderWithoutAngle4PixelTriplets'))
 
 
 #from RecoTracker.TkTrackingRegions.GlobalTrackingRegion_cfi import *
