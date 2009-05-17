@@ -2,60 +2,36 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Analysis")
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
-process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring(
-      'file:data/SingleMuL1_1000m_B.root' 
-#     'file:data/SingleMuL1_6p.root',
-#     'file:data/SingleMuL1_7p.root',
-#     'file:data/SingleMuL1_8p.root',
-#     'file:data/SingleMuL1_9p.root',
-#     'file:data/SingleMuL1_10p.root',
-#     'file:data/SingleMuL1_12p.root',
-#     'file:data/SingleMuL1_15p.root',
-#     'file:data/SingleMuL1_20p.root',
-#     'file:data/SingleMuL1_25p.root',
-#     'file:data/SingleMuL1_30p.root',
-#     'file:data/SingleMuL1_40p.root',
-#     'file:data/SingleMuL1_50p.root',
-#     'file:data/SingleMuL1_60p.root',
-#     'file:data/SingleMuL1_80p.root',
-#     'file:data/SingleMuL1_100p.root'
-  )
+process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:out.root' ))
+
+# import of standard configurations
+process.load('Configuration/StandardSequences/Services_cff')
+process.load('FWCore/MessageService/MessageLogger_cfi')
+#process.MessageLogger = cms.Service("MessageLogger",
+#    debugModules = cms.untracked.vstring('*'),
+#    destinations = cms.untracked.vstring('cout'),
+#    cout = cms.untracked.PSet( threshold = cms.untracked.string('INFO'))
+#)
+process.load('Configuration/StandardSequences/MixingNoPileUp_cff')
+process.load('Configuration/StandardSequences/GeometryExtended_cff')
+process.load('Configuration/StandardSequences/MagneticField_38T_cff')
+process.load('Configuration/StandardSequences/RawToDigi_cff')
+process.load('Configuration/StandardSequences/Reconstruction_cff')
+process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
+process.load('Configuration/EventContent/EventContent_cff')
+
+process.configurationMetadata = cms.untracked.PSet(
+    version = cms.untracked.string('$Revision: 1.118 $'),
+    annotation = cms.untracked.string('step2 nevts:1'),
+    name = cms.untracked.string('PyReleaseValidation')
+)
+process.maxEvents = cms.untracked.PSet(
+    input = cms.untracked.int32(-1)
 )
 
-process.MessageLogger = cms.Service("MessageLogger",
-    debugModules = cms.untracked.vstring('*'),
-    destinations = cms.untracked.vstring('cout'),
-    cout = cms.untracked.PSet( threshold = cms.untracked.string('INFO'))
-)
-
-process.load("Configuration.StandardSequences.Geometry_cff")
-#process.load("Geometry.TrackerSimData.trackerSimGeometryXML_cfi")
-#process.load("Geometry.TrackerGeometryBuilder.trackerGeometry_cfi")
-#process.load("Geometry.TrackerNumberingBuilder.trackerNumberingGeometry_cfi")
-process.load("Configuration.StandardSequences.FakeConditions_cff")
-process.load("Configuration.StandardSequences.MagneticField_cff")
-
-process.load("RecoLocalTracker.Configuration.RecoLocalTracker_cff")
-from RecoLocalTracker.Configuration.RecoLocalTracker_cff import *
-#process.siPixelClusters.src = cms.InputTag('simSiPixelDigis')
-
-process.load("RecoTracker.Configuration.RecoTracker_cff")
-from RecoTracker.Configuration.RecoTracker_cff import *
-
-process.load("RecoPixelVertexing.PixelTrackFitting.PixelTracks_cff")
-process.load("RecoPixelVertexing.Configuration.RecoPixelVertexing_cff")
-
-
-#from RecoPixelVertexing.PixelTriplets.PixelTripletHLTGenerator_cfi import *
-#from RecoPixelVertexing.PixelTrackFitting.PixelTracks_cfi import *
-#from RecoTracker.TkTrackingRegions.GlobalTrackingRegion_cfi import *
-#from RecoPixelVertexing.PixelTriplets.PixelTripletLargeTipGenerator_cfi import *
-#process.pixelTracks.OrderedHitsFactoryPSet.GeneratorPSet = cms.PSet( PixelTripletLargeTipGenerator )
-
-#process.pixelTracks.OrderedHitsFactoryPSet.GeneratorPSet.useFixedPreFiltering = cms.bool(True)
-#process.pixelTracks.RegionFactoryPSet.RegionPSet.ptMin = cms.double(1.00)
-#process.pixelTracks.RegionFactoryPSet.RegionPSet.originRadius = cms.double(0.001)
-#process.pixelTracks.RegionFactoryPSet.RegionPSet.originHalfLength = cms.double(0.001)
+# Other statements
+process.mix.playback = True
+process.GlobalTag.globaltag = 'IDEAL_31X::All'
 
 process.l1seeding = cms.EDFilter("L1Seeding",
 
@@ -83,9 +59,16 @@ process.l1seeding = cms.EDFilter("L1Seeding",
   )
 )
 
+# Path and EndPath definitions
+process.p=cms.Path(process.RawToDigi*process.reconstruction*process.l1seeding)
+#process.raw2digi_step = cms.Path(process.RawToDigi)
+#process.reconstruction_step = cms.Path(process.reconstruction)
+
+# Schedule definition
+#process.schedule = cms.Schedule(process.raw2digi_step,process.reconstruction_step)
 
 #process.p = cms.Path(pixeltrackerlocalreco+process.pixelTracks+process.analysis)
 #process.p = cms.Path(trackerlocalreco+process.recopixelvertexing*ckftracks+process.analysis)
-process.p=cms.Path(trackerlocalreco+process.l1seeding)
+#process.p=cms.Path(trackerlocalreco+process.l1seeding)
 
 
