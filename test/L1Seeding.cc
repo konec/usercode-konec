@@ -60,7 +60,7 @@ struct HistoKey {
 
   HistoKey(){}
   HistoKey(const std::string & atype, float eta, float pt) : type(atype) {
-    iEta = min(20,int(fabs(10.*eta)+1.e-4));
+    iEta = min(23,int(fabs(10.*eta)+1.e-4));
     iPt  = int(pt+1.e-4);
   }
 
@@ -113,11 +113,10 @@ private:
 
 L1Seeding::L1Seeding(const edm::ParameterSet& conf) 
   : theConfig(conf), theGenerator(0), theRegionProducer(0), eventCount(0), theAnalysis(0),
-    theTimer(0)
+    theTimer(0), theFitter(L1MuonPixelTrackFitter(conf.getParameter<edm::ParameterSet>("FitterPSet")))
 {
   edm::LogInfo("L1Seeding")<<" CTORXX";
   theTimer = new R2DTimerObserver("**** MY TIMING REPORT ***");
-
 }
 
 
@@ -127,11 +126,12 @@ L1Seeding::~L1Seeding()
   delete theRegionProducer;
   delete theGenerator;
   delete theTimer;
-  edm::LogInfo("L1Seeding")<<" DTOR";
+  LogDebug("L1Seeding")<<" HERE DTOR";
 }
 
 void L1Seeding::beginJob(const edm::EventSetup& es)
 {
+  std::cout <<"HERE BJ" << std::endl;
 
   edm::ParameterSet orderedPSet =
       theConfig.getParameter<edm::ParameterSet>("OrderedHitsFactoryPSet");
@@ -157,8 +157,8 @@ void L1Seeding::beginJob(const edm::EventSetup& es)
   theAnalysis = new Analysis(apset);
 
   int npt = 16;
-  float pt[] = { 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100}; 
-  for (int ieta=0; ieta <=20; ieta++) {
+  float pt[] = { 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50, 75, 99, 1000}; 
+  for (int ieta=0; ieta <=23; ieta++) {
     for (int ipt=0; ipt < npt; ipt++) {
      bookBendingHisto( float(ieta)/10., pt[ipt]);
     }
@@ -179,7 +179,7 @@ void L1Seeding::beginJob(const edm::EventSetup& es)
   hEffCharge_N = new TH1D("hEffCharge_N","hEffCharge_N",npt-1,pt);
   hEffCharge_D = new TH1D("hEffCharge_D","hEffCharge_D",npt-1,pt);
 
-  hTMP = new TH1D("hTMP","hTMP",100,0.,25.);
+  hTMP = new TH1D("hTMP","hTMP",100,-0.1,0.1);
 
   gHistos.Add(hEffCharge_N);
   gHistos.Add(hEffCharge_D);
@@ -199,7 +199,6 @@ void L1Seeding::beginJob(const edm::EventSetup& es)
   for (IHM i=theCotRes.begin(); i!=theCotRes.end();++i) gHistos.Add(i->second);
   for (IHM i=theTipRes.begin(); i!=theTipRes.end();++i) gHistos.Add(i->second);
   for (IHM i=theZipRes.begin(); i!=theZipRes.end();++i) gHistos.Add(i->second);
-
 
 }
 
@@ -235,43 +234,8 @@ void L1Seeding::bookBendingHisto(float eta, float pt)
   key = HistoKey("hZipRes",eta,pt);
   theZipRes[key] = new TH1D(key.name().c_str(),key.name().c_str(), 50,-0.05,0.05);
 
-  
 }
 
-
-//TH1D * L1Seeding::getBendingHisto(float eta, float pt)
-//{
-//  HistoKey key("hDPhiL1",eta,pt);
-//  HistoMap::iterator im = theL1BendingHisto.find(key);
-//  if (im != theL1BendingHisto.end() ) {
-//    cout <<"ALREADY EXISTING BENDING HISTO:" <<key.name().c_str()<<endl;
-//    return im->second;
-//  } else {
-//   cout <<"*** getBendingHisto ERROR - histogram not found!" << endl;
-//   return 0;
-//  }
-//}
-
-//TH1D * L1Seeding::getBendingHisto(float eta, float pt)
-//{
-//  HistoKey key(eta,pt);
-//  HistoMap::iterator im = theL1BendingHisto.find(key);
-//  if (im != theL1BendingHisto.end() ) {
-//    cout <<"ALREADY EXISTING BENDING HISTO:" <<key.name().c_str()<<endl;
-//    return im->second;
-//  }
-//  else {
-//    float phi = getBending(eta,pt,1);
-//    double dphi = max(0.2,0.5*fabs(phi));
-//    double phi_min = phi-dphi;
-//    double phi_max = phi+dphi;
-//    cout <<"START NEW BENDING HISTO:" 
-//         <<key.name().c_str()<<"phi bending: "<< phi_min<<"max:"<<phi_max<<endl; 
-//    TH1D * h = new TH1D(key.name().c_str(),key.name().c_str(),50,phi_min,phi_max); 
-//    theL1BendingHisto.insert(make_pair(key,h));
-//    return h;
-//  }
-//}
 
 void L1Seeding::analyze(
     const edm::Event& ev, const edm::EventSetup& es)
@@ -295,7 +259,6 @@ void L1Seeding::analyze(
   // Get GMTReadoutCollection
 
   edm::Handle<L1MuGMTReadoutCollection> gmtrc_handle;
-//  ev.getByLabel("l1GmtEmulDigis",gmtrc_handle);
   ev.getByType(gmtrc_handle);
   L1MuGMTReadoutCollection const* gmtrc = gmtrc_handle.product();
   vector<L1MuGMTReadoutRecord> gmt_records = gmtrc->getRecords();
@@ -306,8 +269,10 @@ void L1Seeding::analyze(
     vector<L1MuGMTExtendedCand>::const_iterator gmt_iter;
     vector<L1MuGMTExtendedCand> exc = igmtrr->getGMTCands();
     if (exc.size() <= 0) continue;
-    nMuons++;
     L1MuGMTExtendedCand & muon = exc.front();
+    if (muon.bx() != 0 ) continue;
+    if (muon.empty() ) continue;
+    nMuons++;
 
     hEffCharge_D->Fill(pt_gen);
 
@@ -321,7 +286,7 @@ void L1Seeding::analyze(
 
     TH1D * hDPhiL1 =  theL1BendingHisto[HistoKey("hDPhiL1",muon.etaValue(), pt_gen)];
     if (!hDPhiL1)  abort();
-//  hDPhiL1->Fill(charge_gen*theFitter.deltaPhi(phi_gen,phi_rec));
+    //hDPhiL1->Fill(charge_gen*theFitter.deltaPhi(phi_gen,phi_rec));
 
     
     float dx = cos(phi_rec);
@@ -349,16 +314,19 @@ void L1Seeding::analyze(
       GlobalPoint p1 =  hits[1]->globalPosition();
       PixelRecoLineRZ line(p0,p1);
 
-      double phi_vtx = (p1-p0).phi();
-      hDPhiL1->Fill(charge_gen*theFitter.deltaPhi(phi_vtx,phi_rec));
+      double phi_hit = (p1-p0).phi();
+      hDPhiL1->Fill(charge_gen*theFitter.deltaPhi(phi_hit,phi_rec));
 
-      double invPt_rec = theFitter.valInversePt(phi_vtx, phi_rec, muon.etaValue()); 
-      double invPtErr  = theFitter.errInversePt(invPt_rec, muon.etaValue()); 
+      double invPt_rec = theFitter.valInversePt(phi_hit, phi_rec, muon.etaValue()); 
+      //double invPtErr  = theFitter.errInversePt(invPt_rec, muon.etaValue()); 
+      double invPtErr  = theFitter.errInversePt(1/pt_gen, muon.etaValue()); 
     
       int charge_rec = (invPt_rec > 0.) ? 1 : -1;
-      double curvature = PixelRecoUtilities::curvature(invPt_rec, es); 
+      //double curvature = PixelRecoUtilities::curvature(invPt_rec, es); 
+      double curvature = PixelRecoUtilities::curvature(charge_gen*(1/pt_gen), es); 
       Circle circle(p0,p1,curvature);
-      phi_vtx = theFitter.valPhi(circle, charge_rec);
+      //float phi_vtx = theFitter.valPhi(circle, charge_rec);
+      float phi_vtx = theFitter.valPhi(circle, charge_gen);
 
       double tip = theFitter.valTip(circle,curvature);
       double zip = theFitter.valZip(curvature, p0,p1) - vertex->position().z();
@@ -369,7 +337,7 @@ void L1Seeding::analyze(
       hPhi->Fill(theFitter.deltaPhi(phi_gen,phi_vtx)/theFitter.errPhi(invPt_rec,muon.etaValue()));
       hEta->Fill((theFitter.valCotTheta(line)-sinh(eta_gen))/theFitter.errCotTheta(invPt_rec,muon.etaValue()));  
       hPt->Fill( (invPt_rec-charge_gen/pt_gen)/invPtErr);
-      hTMP->Fill(1./fabs(invPt_rec));
+      hTMP->Fill( charge_gen*theFitter.deltaPhi(phi_gen,phi_rec) );
 
       // resolution histos
       thePtRes[ HistoKey( "hPtRes",eta_gen,pt_gen)]->Fill(charge_gen*pt_gen*invPt_rec-1.);
