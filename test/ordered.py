@@ -2,9 +2,12 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Analysis")
 process.load('Configuration/StandardSequences/Services_cff')
 process.load('FWCore/MessageService/MessageLogger_cfi')
-process.load('Configuration/StandardSequences/GeometryIdeal_cff')
+#process.load('Configuration/StandardSequences/GeometryIdeal_cff')
+process.load('Configuration/StandardSequences/GeometryExtended_cff')
 process.load('Configuration/StandardSequences/MagneticField_38T_cff')
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
+process.GlobalTag.globaltag = 'IDEAL_31X::All'
+
 
 process.load("RecoTracker.Configuration.RecoTracker_cff")
 from RecoTracker.Configuration.RecoTracker_cff import *
@@ -13,14 +16,9 @@ process.load('RecoLocalTracker/Configuration/RecoLocalTracker_cff')
 from RecoLocalTracker.Configuration.RecoLocalTracker_cff import *
 process.siPixelClusters.src = cms.InputTag("simSiPixelDigis")
 
-#process.GlobalTag.globaltag = 'IDEAL_30X::All'
-
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10))
 
-process.source = cms.Source ("PoolSource",fileNames = cms.untracked.vstring(
-#'/store/relval/CMSSW_3_1_0_pre4/RelValSingleMuPt10/GEN-SIM-DIGI-RECO/IDEAL_30X_v1/0001/189AF476-A516-DE11-8357-001A92810AA8.root',
- 'rfio:/castor/cern.ch/user/k/konec/cmssw31x/SingleMu_5m0.root'
-))
+process.source = cms.Source ("PoolSource",fileNames = cms.untracked.vstring('file:SingleMu_5p00.root'))
 
 process.simplelayers = cms.ESProducer("SimpleLayersESProducer",
   ComponentName = cms.string('SimpleLayers'),

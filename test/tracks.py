@@ -3,7 +3,8 @@ process = cms.Process("Analysis")
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring(
-  'rfio:/castor/cern.ch/user/k/konec/cmssw31x/SingleMu_10m00.root' 
+  'file:SingleMu_5p00.root'
+#  'rfio:/castor/cern.ch/user/k/konec/cmssw31x/SingleMu_10m00.root' 
 #'/store/relval/CMSSW_3_1_0_pre4/RelValTTbar/GEN-SIM-DIGI-RAW-HLTDEBUG/IDEAL_30X_v1/0003/3AA6EEA4-3B16-DE11-B35F-001617C3B654.root'
 ))
 
@@ -15,11 +16,7 @@ process.load('Configuration/StandardSequences/MagneticField_38T_cff')
 process.load('Configuration/StandardSequences/RawToDigi_cff')
 process.load('Configuration/StandardSequences/Reconstruction_cff')
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
-process.MessageLogger = cms.Service("MessageLogger",
-    debugModules = cms.untracked.vstring('hltL3TrajectorySeedFromL1'),
-    destinations = cms.untracked.vstring('cout'),
-    cout = cms.untracked.PSet( threshold = cms.untracked.string('DEBUG'))
-)
+process.load('FWCore/MessageService/MessageLogger_cfi')
 
 # Other statements
 process.GlobalTag.globaltag = 'IDEAL_31X::All'
@@ -30,18 +27,10 @@ process.load('RecoLocalTracker/Configuration/RecoLocalTracker_cff')
 
 process.load("RecoTracker.IterativeTracking.FirstStep_cff")
 from RecoTracker.IterativeTracking.FirstStep_cff import *
-#newTrackCandidateMaker.src = cms.InputTag('globalPixelSeeds')
-newTrackCandidateMaker.src = cms.InputTag('hltL3TrajectorySeedFromL1')
+newTrackCandidateMaker.src = cms.InputTag('globalPixelSeeds')
+#newTrackCandidateMaker.src = cms.InputTag('hltL3TrajectorySeedFromL1')
 #newTrackCandidateMaker.src = cms.InputTag('primSeeds')
 #newTrackCandidateMaker.src = cms.InputTag('seedsFromProtoTracks')
-
-process.load("L1Trigger.L1ExtraFromDigis.l1extraParticles_cfi")
-from L1Trigger.L1ExtraFromDigis.l1extraParticles_cfi import *
-l1extraParticles.produceCaloParticles = cms.bool(False)
-
-process.load("RecoMuon.TrackerSeedGenerator.TSGFromL1_cff")
-from RecoMuon.TrackerSeedGenerator.TSGFromL1_cfi import *
-hltL3TrajectorySeedFromL1.L1MuonLabel = cms.InputTag('l1extraParticles')
 
 process.analysis = cms.EDFilter("TrackAnalysis",
 #  TrackCollection = cms.string("pixelTracks"),
@@ -63,4 +52,4 @@ process.analysis = cms.EDFilter("TrackAnalysis",
      ptMinLeadingTrack = cms.double(0.05)
   )
 )
-process.p=cms.Path(process.RawToDigi*process.trackerlocalreco*process.offlineBeamSpot*l1extraParticles*hltL3TrajectorySeedFromL1*newTrackCandidateMaker*preFilterZeroStepTracks*process.analysis)
+process.p=cms.Path(process.RawToDigi*process.trackerlocalreco*process.offlineBeamSpot*process.globalPixelSeeds*newTrackCandidateMaker*preFilterZeroStepTracks*process.analysis)

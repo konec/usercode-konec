@@ -3,10 +3,11 @@ import sys
 process = cms.Process("Analysis")
 
 # max events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000))
 
 # input file
-reference = 'rfio:/castor/cern.ch/user/k/konec/cmssw31x/'
+#reference = 'rfio:/castor/cern.ch/user/k/konec/cmssw31x/'
+reference = 'file:'
 filenames = reference+sys.argv[2]+'.root'
 process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( filenames ) )
 

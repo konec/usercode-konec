@@ -57,7 +57,6 @@ TrackAnalysis::TrackAnalysis(const edm::ParameterSet& conf)
 TrackAnalysis::~TrackAnalysis() 
 { 
   delete theAnalysis;
-
   edm::LogInfo("TrackAnalysis")<<" DTOR";
 }
 
