@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 process = cms.Process("Analysis")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100))
 process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring(
   'file:SingleMu_5p00.root'
 #  'rfio:/castor/cern.ch/user/k/konec/cmssw31x/SingleMu_10m00.root' 
@@ -19,7 +19,8 @@ process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 process.load('FWCore/MessageService/MessageLogger_cfi')
 
 # Other statements
-process.GlobalTag.globaltag = 'IDEAL_31X::All'
+#process.GlobalTag.globaltag = 'IDEAL_31X::All'
+process.GlobalTag.globaltag = 'STARTUP31X_V1::All'
 
 process.load("RecoTracker.Configuration.RecoTracker_cff")
 from RecoTracker.Configuration.RecoTracker_cff import *
