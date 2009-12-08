@@ -3,8 +3,8 @@ process = cms.Process("Analysis")
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(5))
 process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring(
-  'file:SingleMu.root'
-#  'file:MinBias.root'
+#  'file:SingleMu.root'
+  'file:MinBias.root'
 #  'rfio:/castor/cern.ch/user/k/konec/cmssw31x/SingleMu_10m00.root' 
 #'/store/relval/CMSSW_3_1_0_pre4/RelValTTbar/GEN-SIM-DIGI-RAW-HLTDEBUG/IDEAL_30X_v1/0003/3AA6EEA4-3B16-DE11-B35F-001617C3B654.root'
 ))
@@ -38,8 +38,8 @@ newTrackCandidateMaker.src = cms.InputTag('globalPixelSeeds')
 #newTrackCandidateMaker.src = cms.InputTag('seedsFromProtoTracks')
 
 process.analysis = cms.EDFilter("TrackAnalysis",
-#  TrackCollection = cms.string("pixelTracks"),
-  TrackCollection = cms.string("preFilterZeroStepTracks"),
+  TrackCollection = cms.string("pixelTracks"),
+#  TrackCollection = cms.string("preFilterZeroStepTracks"),
   AssociatorPSet = cms.PSet(
     associateStrip = cms.bool(False),
     associatePixel = cms.bool(False),
@@ -57,5 +57,6 @@ process.analysis = cms.EDFilter("TrackAnalysis",
      ptMinLeadingTrack = cms.double(0.05)
   )
 )
-process.p=cms.Path(process.RawToDigi*process.trackerlocalreco*process.offlineBeamSpot*process.globalPixelSeeds*newTrackCandidateMaker*preFilterZeroStepTracks*process.analysis) 
-#process.p=cms.Path(process.offlineBeamSpot*process.globalPixelSeeds*newTrackCandidateMaker*preFilterZeroStepTracks*process.analysis)
+process.p=cms.Path(process.RawToDigi*process.trackerlocalreco*process.pixelTracks*process.analysis) 
+
+#process.p=cms.Path(process.RawToDigi*process.trackerlocalreco*process.offlineBeamSpot*process.globalPixelSeeds*newTrackCandidateMaker*preFilterZeroStepTracks*process.analysis) 
