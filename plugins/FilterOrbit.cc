@@ -1,4 +1,4 @@
-#include "OrbitFilter.h"
+#include "FilterOrbit.h"
 
 //
 // constants, enums and typedefs
@@ -11,7 +11,7 @@
 //
 // constructors and destructor
 //
-OrbitFilter::OrbitFilter(const edm::ParameterSet& iConfig):
+FilterOrbit::FilterOrbit(const edm::ParameterSet& iConfig):
 m_minOrbit( iConfig.getParameter<int>("minOrbit") ),
 m_maxOrbit( iConfig.getParameter<int>("maxOrbit") ),
 m_orbPassed(0)
@@ -21,7 +21,7 @@ m_orbPassed(0)
 }
 
 
-OrbitFilter::~OrbitFilter()
+FilterOrbit::~FilterOrbit()
 {
  
    // do anything here that needs to be done at desctruction time
@@ -36,7 +36,7 @@ OrbitFilter::~OrbitFilter()
 
 // ------------ method called on each new Event  ------------
 bool
-OrbitFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
+FilterOrbit::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    using namespace edm;
 
@@ -46,7 +46,7 @@ OrbitFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   bool ret = (orbit>=m_minOrbit && orbit<=m_maxOrbit  );
   if (ret) {
-    LogDebug("OrbitFilter") << "Passed: " <<  m_orbPassed++ << std::endl;
+    LogDebug("FilterOrbit") << "Passed: " <<  m_orbPassed++ << std::endl;
   }
 
   return ret;
@@ -55,12 +55,12 @@ OrbitFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-OrbitFilter::beginJob(const edm::EventSetup&)
+FilterOrbit::beginJob(const edm::EventSetup&)
 {
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
-OrbitFilter::endJob() {
+FilterOrbit::endJob() {
 }
 

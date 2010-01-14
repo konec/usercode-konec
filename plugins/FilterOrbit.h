@@ -1,11 +1,11 @@
-#ifndef OrbitFilter_H
-#define OrbitFilter_H
+#ifndef FilterOrbit_H
+#define FilterOrbit_H
 // -*- C++ -*-
 //
-// Package:    OrbitFilter
-// Class:      OrbitFilter
+// Package:    FilterOrbit
+// Class:      FilterOrbit
 //
-/**\class OrbitFilter OrbitFilter.cc MyAna/OrbitFilter/src/OrbitFilter.cc
+/**\class FilterOrbit FilterOrbit.cc MyAna/FilterOrbit/src/FilterOrbit.cc
 
  Description: <one line class summary>
 
@@ -15,7 +15,7 @@
 //
 // Original Author:  Tomasz Maciej Frueboes
 //         Created:  Sat Jan 24 15:11:35 CET 2009
-// $Id$
+// $Id: FilterOrbit.h,v 1.1 2009/03/24 23:16:42 konec Exp $
 //
 //
 
@@ -36,10 +36,10 @@
 // class declaration
 //
 
-class OrbitFilter : public edm::EDFilter {
+class FilterOrbit : public edm::EDFilter {
    public:
-      explicit OrbitFilter(const edm::ParameterSet&);
-      ~OrbitFilter();
+      explicit FilterOrbit(const edm::ParameterSet&);
+      ~FilterOrbit();
 
    private:
       virtual void beginJob(const edm::EventSetup&) ;
