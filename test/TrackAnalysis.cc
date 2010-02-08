@@ -42,7 +42,7 @@ private:
   edm::ParameterSet theConfig;
   int eventCount;
   Analysis * theAnalysis;
-
+  TH1D *hPhi, *hNum, *hPt; 
 };
 
 
@@ -64,6 +64,13 @@ void TrackAnalysis::beginJob(const edm::EventSetup& es)
 {
   edm::ParameterSet apset = theConfig.getParameter<edm::ParameterSet>("AnalysisPSet");
   theAnalysis = new Analysis(apset);
+  hPhi = new  TH1D("hPhi","hPhi",100, -3.2,3.2);
+  hPt = new TH1D("hPt","hPt",100,0.,5.);
+  hNum = new TH1D("hNum","hNum",40,0.,40.);
+
+  gHistos.Add(hPhi);
+  gHistos.Add(hPt);
+  gHistos.Add(hNum);
 }
 
 
@@ -79,10 +86,16 @@ void TrackAnalysis::analyze(
   std::string collectionLabel = theConfig.getParameter<std::string>("TrackCollection");
   ev.getByLabel(collectionLabel,trackCollection);
   reco::TrackCollection tracks = *(trackCollection.product());
-  cout <<" number of tracks: " << tracks.size() << endl;
+  cout <<"#RECONSTRUCTED tracks: " << tracks.size() << endl;
+  hNum->Fill(tracks.size());
 
-//  typedef reco::TrackCollection::const_iterator IT;
-//  for (IT it = tracks.begin(); it !=tracks.end(); ++it) Analysis::print(*it);
+  typedef reco::TrackCollection::const_iterator IT;
+  for (IT it = tracks.begin(); it !=tracks.end(); ++it) {
+    const reco::Track & track = *it;
+//    Analysis::print(track);
+    hPt->Fill(track.pt());
+    hPhi->Fill(track.momentum().phi());
+  }
 
 
 //  theAnalysis->init(ev,es,&assoc);

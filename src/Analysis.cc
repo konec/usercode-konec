@@ -8,6 +8,9 @@
 #include "DataFormats/TrackingRecHit/interface/TrackingRecHit.h"
 #include "SimTracker/TrackerHitAssociation/interface/TrackerHitAssociator.h"
 
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+
 //simtrack
 #include "SimDataFormats/Track/interface/SimTrack.h"
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
@@ -33,6 +36,7 @@
 #include <iostream>
 using namespace std;
 using namespace edm;
+using namespace reco;
 using namespace ctfseeding;
 
 template <class T> T sqr( T t) {return t*t;}
@@ -163,6 +167,29 @@ void Analysis::init(const edm::Event& ev, const edm::EventSetup& es, TrackerHitA
   theSimVertices = *(simVc.product());
   cout <<" Analysis has: " << theSimVertices.size()<<" vertices"<<endl;
 
+  Handle<GenParticleCollection> genParticles;
+  ev.getByLabel("genParticles", genParticles);
+  cout <<" Analysis has: "<< genParticles->size() << " particles!" << endl;
+/*
+   for(size_t i = 0; i < genParticles->size(); ++ i) {
+     const GenParticle & p = (*genParticles)[i];
+     int id = p.pdgId();
+     int st = p.status();  
+     const Candidate * mom = p.mother();
+     double pt = p.pt(), eta = p.eta(), phi = p.phi(), mass = p.mass();
+     double vx = p.vx(), vy = p.vy(), vz = p.vz();
+     int charge = p.charge();
+     int n = p.numberOfDaughters();
+     for(size_t j = 0; j < n; ++ j) {
+       const Candidate * d = p.daughter( j );
+       int dauId = d->pdgId();
+       // . . . 
+     }
+     // . . . 
+   }
+*/
+ 
+
   theAssociator = ass;
 //  if (theAssociator) delete theAssociator;
 }
@@ -274,6 +301,7 @@ void Analysis::checkAlgoEfficiency2(const SeedingLayerSets &layersSets, const Or
 void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
 {
   typedef  SimTrackContainer::const_iterator IP;
+  math::XYZPoint bs(0.25,0.4,0.0);
 
   typedef SeedingHitSet::RecHits RecHits;
 
@@ -284,6 +312,7 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
     std::cout << " vertex: "<<vertex(&track)->position() << std::endl;
     float eta_gen = track.momentum().eta();
     float pt_gen = track.momentum().pt();
+    std::cout <<" pt_gen is: " << pt_gen << endl;
 
     bool matched = false;
     typedef reco::TrackCollection::const_iterator IT;
@@ -298,10 +327,10 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
 //    static_cast<TH1*>(gHistos.FindObject("h_PullTip"))->Fill((*it).d0()/(*it).d0Error());
       hMap["h_Pt"]->Fill((pt_gen - pt_rec)/pt_gen);
       hMap["h_PullPt"]->Fill((pt_gen - pt_rec)/(*it).ptError());
-      hMap["h_Tip"]->Fill((*it).d0());
-      hMap["h_PullTip"]->Fill((*it).d0()/(*it).d0Error());
-      hMap["h_Zip"]->Fill( (*it).dz()-vertex(&track)->position().z() );
-      hMap["h_PullZip"]->Fill(( (*it).dz()-vertex(&track)->position().z())/(*it).dzError());
+      hMap["h_Tip"]->Fill((*it).dxy(bs));
+      hMap["h_PullTip"]->Fill((*it).dxy(bs)/(*it).d0Error());
+      hMap["h_Zip"]->Fill( (*it).dz(bs)-vertex(&track)->position().z() );
+      hMap["h_PullZip"]->Fill(( (*it).dz(bs)-vertex(&track)->position().z())/(*it).dzError());
 
       float cosTheta = cos(it->theta());
       float sinTheta = sin(it->theta());
@@ -314,7 +343,6 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
     }
 
     if (fabs(eta_gen) < 2.1) {
-      cout <<" pt_gen is: " << pt_gen << endl;
       hEffPt_D->Fill(pt_gen+1.e-4);
       hEffLPt_D->Fill(pt_gen+1.e-4);
       if(matched) hEffPt_N->Fill(pt_gen+1.e-4);
@@ -435,13 +463,19 @@ void Analysis::print(const SimTrack & track)
 //----------------------------------------------------------------------------------------
 void Analysis::print(const reco::Track & track)
 {
+    math::XYZPoint bs(0.25,0.4,-0.617);
     cout << "--- RECONSTRUCTED TRACK: " << endl;
     cout << "\tmomentum: " << track.momentum()
          << "\tPT: " << track.pt()<<"+/-"<<track.ptError()<< endl;
-    cout << "\tvertex: " << track.vertex()
+    cout << "\tvertex: " << track.vertex() << endl
          << "\t zip: " <<  track.dz()<<"+/-"<<track.dzError()
          << "\t tip: " << track.d0()<<"+/-"<<track.d0Error()<< endl;
+    cout 
+<<" \t TIP"<<track.dxy(bs)
+<< "\t DZ : "<<  track.dz(bs)
+<<" \t DSZ"<<track.dsz(bs) <<endl;
     cout << "\t chi2: "<< track.chi2()<<endl;
+    
     cout << "\tcharge: " << track.charge()<< endl;
 
 }
