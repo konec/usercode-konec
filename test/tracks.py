@@ -71,15 +71,15 @@ BBlock = cms.PSet(
 )
 
 
-PixelTripletLowPtGenerator = cms.PSet (
-   ComponentName = cms.string('PixelTripletLowPtGenerator'),
-   checkClusterShape       = cms.bool(False),
-   checkMultipleScattering = cms.bool(True),
-   nSigMultipleScattering  = cms.double(5.0),
-   maxAngleRatio = cms.double(10.0),
-   rzTolerance   = cms.double(0.2),
-   TTRHBuilder   = cms.string('TTRHBuilderWithoutAngle4PixelTriplets')
-)
+#PixelTripletLowPtGenerator = cms.PSet (
+#   ComponentName = cms.string('PixelTripletLowPtGenerator'),
+#   checkClusterShape       = cms.bool(False),
+#   checkMultipleScattering = cms.bool(True),
+#   nSigMultipleScattering  = cms.double(5.0),
+#   maxAngleRatio = cms.double(10.0),
+#   rzTolerance   = cms.double(0.2),
+#   TTRHBuilder   = cms.string('TTRHBuilderWithoutAngle4PixelTriplets')
+#)
 
 PixelTripletNoTipGenerator = cms.PSet(
   ComponentName = cms.string('PixelTripletNoTipGenerator'),
