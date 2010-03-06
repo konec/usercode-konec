@@ -1,6 +1,7 @@
 <use name=root>
 <use name=FWCore/Framework>
 <use name=RecoTracker/TkHitPairs>
+<use name=RecoTracker/TkTrackingRegions>
 <use name=SimTracker/TrackerHitAssociation>
 <use name=SimDataFormats/TrackerDigiSimLink>
 
