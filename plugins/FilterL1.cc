@@ -34,8 +34,7 @@ bool FilterL1::filter(edm::Event&ev, const edm::EventSetup&es)
 {
 
   bool goodEvent = false;
-  if (   ev.id().event() == 3856444 
-      ) goodEvent = true;
+// if (   ev.id().event() == 3856444 ) goodEvent = true;
       
   edm::Handle<L1MuGMTReadoutCollection> pCollection;
   InputTag rpctfSource_("l1GtUnpack");
@@ -104,6 +103,7 @@ bool FilterL1::filter(edm::Event&ev, const edm::EventSetup&es)
     }
   }
   if (brlRPC || fwdRPC || CSC || DT) goodEvent = true;
-  return goodEvent;
+//  return goodEvent;
+  return true;
 }
 

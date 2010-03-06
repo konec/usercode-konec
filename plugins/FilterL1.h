@@ -10,7 +10,6 @@ public:
   explicit FilterL1(const edm::ParameterSet&);
   ~FilterL1() {}
 private:
-  virtual void beginJob(const edm::EventSetup&)  {}
   virtual bool filter(edm::Event&, const edm::EventSetup&);
   virtual void endJob() {} 
 };
