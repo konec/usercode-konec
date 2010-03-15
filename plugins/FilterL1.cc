@@ -52,12 +52,14 @@ bool FilterL1::filter(edm::Event&ev, const edm::EventSetup&es)
   vector<L1MuRegionalCand> Cands;
   typedef vector<L1MuRegionalCand>::const_iterator ITC;
 
+  std::ostringstream str;
+
   for( RRItr = gmt_records.begin() ; RRItr != gmt_records.end() ; RRItr++ ) {
     Cands = RRItr->getCSCCands();
     for(ITC it = Cands.begin() ; it != Cands.end() ; ++it ) {
       if (it->empty()) continue;
       CSC = true;
-      std::cout <<"HAS  CSC cand "
+      str <<"HAS  CSC cand "
           <<" pt: "<<it->ptValue()
           <<" eta: "<<it->etaValue()
           <<" phi: "<<it->phiValue()
@@ -69,7 +71,7 @@ bool FilterL1::filter(edm::Event&ev, const edm::EventSetup&es)
     for(ITC it = Cands.begin() ; it != Cands.end() ; ++it ) {
       if (it->empty()) continue;
       DT= true;
-      std::cout <<"HAS   DT cand "
+      str <<"HAS   DT cand "
           <<" pt: "<<it->ptValue()
           <<" eta: "<<it->etaValue()
           <<" phi: "<<it->phiValue()
@@ -81,7 +83,7 @@ bool FilterL1::filter(edm::Event&ev, const edm::EventSetup&es)
     for(ITC it = Cands.begin() ; it != Cands.end() ; ++it ) {
       if (it->empty()) continue;
       brlRPC = true;
-      std::cout <<"HAS RPCB cand "
+      str <<"HAS RPCB cand "
           <<" pt: "<<it->ptValue()
           <<" eta: "<<it->etaValue()
           <<" phi: "<<it->phiValue()
@@ -93,7 +95,7 @@ bool FilterL1::filter(edm::Event&ev, const edm::EventSetup&es)
     for(ITC it = Cands.begin() ; it != Cands.end() ; ++it ) {
       if (it->empty()) continue;
       fwdRPC = true;
-      std::cout <<"HAS RPCF cand "
+      str <<"HAS RPCF cand "
           <<" pt: "<<it->ptValue()
           <<" eta: "<<it->etaValue()
           <<" phi: "<<it->phiValue()
@@ -102,7 +104,9 @@ bool FilterL1::filter(edm::Event&ev, const edm::EventSetup&es)
           <<std::endl;
     }
   }
-  if (brlRPC || fwdRPC || CSC || DT) goodEvent = true;
+//  std::cout << str.str() << std::endl;
+//  if (brlRPC || fwdRPC || CSC || DT) goodEvent = true;
+//  if (brlRPC || fwdRPC) goodEvent = true;
 //  return goodEvent;
   return true;
 }
