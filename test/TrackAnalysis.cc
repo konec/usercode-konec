@@ -35,7 +35,7 @@ class TrackAnalysis : public edm::EDAnalyzer {
 public:
   explicit TrackAnalysis(const edm::ParameterSet& conf);
   ~TrackAnalysis();
-  virtual void beginJob(const edm::EventSetup& iSetup);
+  virtual void beginJob();
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
   virtual void endJob() { }
 private:
@@ -60,7 +60,7 @@ TrackAnalysis::~TrackAnalysis()
   edm::LogInfo("TrackAnalysis")<<" DTOR";
 }
 
-void TrackAnalysis::beginJob(const edm::EventSetup& es)
+void TrackAnalysis::beginJob()
 {
   edm::ParameterSet apset = theConfig.getParameter<edm::ParameterSet>("AnalysisPSet");
   theAnalysis = new Analysis(apset);
