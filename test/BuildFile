@@ -6,7 +6,6 @@
 <use name=FWCore/ParameterSet>
 <use name=Utilities/Timing>
 <use name=UserCode/konec>
-<use name=RecoMuon/TrackerSeedGenerator>
 <use name=RecoPixelVertexing/PixelTrackFitting>
 
 <library file="OrderedHitsAnalysis.cc" name=OrderedHitsAnalysis>

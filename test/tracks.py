@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Analysis")
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
-process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:DoubleMu_3_xy.root'
+process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:DoubleMu_3m_xy.root'
 ))
 
 # import of standard configurations
@@ -17,8 +17,8 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 #process.GlobalTag.globaltag = 'IDEAL_31X::All'
 #process.GlobalTag.globaltag = 'STARTUP31X_V1::All'
 #process.GlobalTag.globaltag = 'MC_31X_V9::All'
-#process.GlobalTag.globaltag ='STARTUP3X_V8N::All'
-process.GlobalTag.globaltag = 'MC_36Y_V2::All'
+process.GlobalTag.globaltag ='STARTUP3X_V8N::All'
+#process.GlobalTag.globaltag = 'MC_36Y_V2::All'
 
 
 process.MessageLogger = cms.Service("MessageLogger",
@@ -37,6 +37,17 @@ process.load("RecoPixelVertexing.PixelTrackFitting.PixelTracks_cff")
 from RecoPixelVertexing.PixelTrackFitting.PixelTracks_cff import *
 from RecoPixelVertexing.PixelTrackFitting.PixelFitterByConformalMappingAndLine_cfi import *
 
+
+BBlock = cms.PSet(
+  ComponentName = cms.string('GlobalRegionProducerFromBeamSpot'),
+  RegionPSet = cms.PSet(
+    precise = cms.bool(True),
+    nSigmaZ = cms.double(3.0),
+    originRadius = cms.double(0.2),
+    ptMin = cms.double(0.8),
+    beamSpot = cms.InputTag("offlineBeamSpot")
+  )
+)
 
 
 GBlock= cms.PSet(
@@ -60,11 +71,10 @@ FitterPSet = cms.PSet(
 )
 
 
-process.pixelTracks.RegionFactoryPSet= cms.PSet( GBlock )
+process.pixelTracks.RegionFactoryPSet= cms.PSet( BBlock )
 process.pixelTracks.FilterPSet.ComponentName = cms.string('none')
 process.pixelTracks.OrderedHitsFactoryPSet.GeneratorPSet = cms.PSet ( PixelTripletHLTGenerator )
 process.pixelTracks.FitterPSet = cms.PSet(FitterPSet)
-process.pixelVertices.Verbosity = cms.int32(0)
 
 
 process.analysis = cms.EDFilter("TrackAnalysis",
