@@ -23,11 +23,11 @@ process.GlobalTag.globaltag ='STARTUP3X_V8N::All'
 
 process.MessageLogger = cms.Service("MessageLogger",
     #debugModules = cms.untracked.vstring('pixelVertices'),
-    #debugModules = cms.untracked.vstring('pixelTracks'),
+    debugModules = cms.untracked.vstring('pixelTracks'),
     #debugModules = cms.untracked.vstring('*'),
-    debugModules = cms.untracked.vstring(''),
+    #debugModules = cms.untracked.vstring(''),
     destinations = cms.untracked.vstring('cout'),
-    cout = cms.untracked.PSet( threshold = cms.untracked.string('INFO'))
+    cout = cms.untracked.PSet( threshold = cms.untracked.string('DEBUG'))
 )
 
 process.load("RecoTracker.Configuration.RecoTracker_cff")
@@ -59,14 +59,14 @@ GBlock= cms.PSet(
      originRadius = cms.double(0.2),
      originXPos = cms.double(0.2),
      originYPos = cms.double(0.4),
-     originZPos = cms.double(-2.5)
+     originZPos = cms.double(-2.4)
   )
 )
 
 FitterPSet = cms.PSet(
-  ComponentName = cms.string('PixelFitterByConformalMappingAndLine'),
-  fixImpactParameter = cms.double(0.),
-#  ComponentName = cms.string('PixelFitterByHelixProjections'),
+#  ComponentName = cms.string('PixelFitterByConformalMappingAndLine'),
+#  fixImpactParameter = cms.double(0.),
+  ComponentName = cms.string('PixelFitterByHelixProjections'),
   TTRHBuilder   = cms.string('TTRHBuilderWithoutAngle4PixelTriplets')
 )
 

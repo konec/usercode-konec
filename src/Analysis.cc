@@ -301,7 +301,7 @@ void Analysis::checkAlgoEfficiency2(const SeedingLayerSets &layersSets, const Or
 void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
 {
   typedef  SimTrackContainer::const_iterator IP;
-  math::XYZPoint bs(0.2,0.4,-2.5);
+  math::XYZPoint bs(0.2,0.4,-2.4);
 //  math::XYZPoint bs(0.0,0.0,-2.5);
 
   typedef SeedingHitSet::RecHits RecHits;
