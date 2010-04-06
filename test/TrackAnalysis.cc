@@ -99,8 +99,8 @@ void TrackAnalysis::analyze(
 
 
 //  theAnalysis->init(ev,es,&assoc);
-  theAnalysis->init(ev,es,0);
-  theAnalysis->checkEfficiency(tracks);
+//  theAnalysis->init(ev,es,0);
+//  theAnalysis->checkEfficiency(tracks);
 
 
 }

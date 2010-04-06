@@ -20,9 +20,11 @@ process.load('Configuration.StandardSequences.L1Reco_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.load('Configuration.EventContent.EventContent_cff')
-process.GlobalTag.globaltag = 'MC_36Y_V2::All'
+#process.GlobalTag.globaltag = 'MC_36Y_V2::All'
+process.GlobalTag.globaltag = 'START36_V3::All'
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000))
+
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10))
 
 process.source = cms.Source("EmptySource")
 

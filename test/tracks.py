@@ -17,8 +17,9 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 #process.GlobalTag.globaltag = 'IDEAL_31X::All'
 #process.GlobalTag.globaltag = 'STARTUP31X_V1::All'
 #process.GlobalTag.globaltag = 'MC_31X_V9::All'
-process.GlobalTag.globaltag ='STARTUP3X_V8N::All'
-#process.GlobalTag.globaltag = 'MC_36Y_V2::All'
+#process.GlobalTag.globaltag ='STARTUP3X_V8N::All'
+process.GlobalTag.globaltag = 'MC_36Y_V2::All'
+
 
 
 process.MessageLogger = cms.Service("MessageLogger",

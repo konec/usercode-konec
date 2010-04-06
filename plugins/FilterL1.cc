@@ -104,10 +104,10 @@ bool FilterL1::filter(edm::Event&ev, const edm::EventSetup&es)
           <<std::endl;
     }
   }
-//  std::cout << str.str() << std::endl;
-//  if (brlRPC || fwdRPC || CSC || DT) goodEvent = true;
+  if ( brlRPC || fwdRPC || CSC || DT)  std::cout << str.str() << std::endl;
+  if (brlRPC || fwdRPC || CSC || DT) goodEvent = true;
 //  if (brlRPC || fwdRPC) goodEvent = true;
-//  return goodEvent;
-  return true;
+  return goodEvent;
+//  return true;
 }
 

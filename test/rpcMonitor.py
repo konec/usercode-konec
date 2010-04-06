@@ -11,9 +11,9 @@ process.load("DQM.RPCMonitorClient.RPCMonitorRaw_cfi")
 #process.rpcMonitorRaw.writeHistograms = cms.untracked.bool(True)
 #process.rpcMonitorRaw.histoFileName = cms.untracked.string("histos1.root")
 process.load("DQM.RPCMonitorClient.RPCMonitorLinkSynchro_cfi")
-#process.rpcMonitorLinkSynchro.dumpDelays = cms.untracked.bool(True)
+process.rpcMonitorLinkSynchro.dumpDelays = cms.untracked.bool(True)
 #process.rpcMonitorLinkSynchro.writeHistograms = cms.untracked.bool(True)
-#process.rpcMonitorLinkSynchro.useFirstHitOnly = cms.untracked.bool(True)
+process.rpcMonitorLinkSynchro.useFirstHitOnly = cms.untracked.bool(True)
 #process.rpcMonitorLinkSynchro.histoFileName = cms.untracked.string("histos2.root")
 
 
@@ -34,14 +34,15 @@ process.load("DQMServices.Components.test.dqm_onlineEnv_cfi")
 process.dqmSaver.convention = 'Online'
 process.dqmEnv.subSystemFolder = 'R2DTEST'
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 
 process.source = cms.Source ("PoolSource",fileNames = cms.untracked.vstring(
-'file:/disk00/work/data/BeamSplash_129468.root', 
-'file:/disk00/work/data/BeamSplash_129471.root',
+#'file:/disk00/work/data/BeamSplash_129468.root', 
+#'file:/disk00/work/data/BeamSplash_129471.root',
+'file:/disk00/work/data/FED831D5-F03B-DF11-9C75-0030487D05B0.root',
+'file:/disk00/work/data/FE290C8E-F83B-DF11-8C7D-001D09F2423B.root'
 #'/store/data/BeamCommissioning09/MinimumBias/RAW/v1/000/123/970/809B636D-F2E5-DE11-AB8B-001D09F23174.root'
-'file:/disk00/work/data/BeamHalo_130445_RAW.2.root'
-
+#'file:/disk00/work/data/BeamHalo_130445_RAW.2.root'
 ))
 
 # correct output file
