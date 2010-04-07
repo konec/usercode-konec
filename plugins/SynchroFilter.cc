@@ -24,6 +24,12 @@
 #include "DataFormats/TrackReco/interface/print.h"
 
 
+#include "TObjArray.h"
+#include "TFile.h"
+#include "TH1D.h"
+
+TObjArray histos;
+
 
 
 #include <iostream>
@@ -35,7 +41,22 @@ using namespace edm;
 using namespace std;
 
 SynchroFilter::SynchroFilter(const edm::ParameterSet& cfg)
-{ }
+{ 
+    hDeltaPhi = new TH1D("hDeltaPhi","hDeltaPhi",100, 0., 3.);
+    hDeltaEta = new TH1D("hDeltaEta","hDeltaEta",100, 0, 1.);
+    histos.SetOwner();
+    histos.Add(hDeltaPhi);
+    histos.Add(hDeltaEta);
+}
+
+SynchroFilter::~SynchroFilter()
+{ 
+  cout <<"WRITING ROOT FILE"<< std::endl;
+  TFile rootFile("analysis.root","RECREATE");
+  histos.Write();
+  rootFile.Close();
+  cout <<"rootFile WRITTEN, DTOR"<<endl;
+}
 
 bool SynchroFilter::filter(edm::Event&ev, const edm::EventSetup&es)
 {
@@ -65,6 +86,9 @@ bool SynchroFilter::filter(edm::Event&ev, const edm::EventSetup&es)
   float rpcPhi = -10.;
   float muonEta = -01.;
   float muonPhi=-10.;
+  mindeta = 100.;
+  mindphi = 100.;
+  bool matched = false;
 
   for( RRItr = gmt_records.begin() ; RRItr != gmt_records.end() ; RRItr++ ) {
     Cands = RRItr->getCSCCands();
@@ -101,6 +125,7 @@ bool SynchroFilter::filter(edm::Event&ev, const edm::EventSetup&es)
       brlRPC = true;
       rpcEta = it->etaValue();
       rpcPhi = it->phiValue();
+      if (checkMatching(rpcEta,rpcPhi,ev)) matched = true;
       str <<"HAS RPCB cand "
           <<" pt: "<<it->ptValue()
           <<" eta: "<<it->etaValue()
@@ -115,6 +140,7 @@ bool SynchroFilter::filter(edm::Event&ev, const edm::EventSetup&es)
       fwdRPC = true;
       rpcEta = it->etaValue();
       rpcPhi = it->phiValue();
+      if (checkMatching(rpcEta,rpcPhi,ev)) matched = true;
       str <<"HAS RPCF cand "
           <<" pt: "<<it->ptValue()
           <<" eta: "<<it->etaValue()
@@ -127,14 +153,31 @@ bool SynchroFilter::filter(edm::Event&ev, const edm::EventSetup&es)
 //  if ( brlRPC || fwdRPC || CSC || DT)  std::cout << str.str() << std::endl;
 //  if (brlRPC || fwdRPC || CSC || DT) goodEvent = true;
 //  if (brlRPC || fwdRPC) goodEvent = true;
+//  if (brlRPC || fwdRPC)   std::cout << str.str() << std::endl;
 
+  if (mindphi < 99.) hDeltaPhi->Fill(mindphi);
+  if (mindeta < 99.) hDeltaEta->Fill(mindeta);
+  if (matched) goodEvent=true;
+  return goodEvent;
+}
+
+bool SynchroFilter::checkMatching(float rpcEta, float rpcPhi, edm::Event&ev)
+{
   bool matched = false;
 
+//  rpcEta *= -1;
+//  rpcPhi += M_PI;
+//  if (rpcPhi > 2*M_PI) rpcPhi -= 2*M_PI;
+
   edm::Handle<reco::TrackCollection> trackCollection;
- // InputTag trackCollectionTag("generalTracks");
-  InputTag trackCollectionTag("globalMuons");
-  ev.getByLabel(trackCollectionTag,trackCollection);
-  reco::TrackCollection tracks = *(trackCollection.product());
+  edm::Handle<reco::TrackCollection> muonCollection;
+  ev.getByLabel(InputTag("generalTracks"),trackCollection);
+  ev.getByLabel(InputTag("globalMuons"),muonCollection);
+
+//  if (muonCollection->size() != 0) return false;
+
+//  reco::TrackCollection tracks = *(trackCollection.product());
+  reco::TrackCollection tracks = *(muonCollection.product());
 //  cout <<"#RECONSTRUCTED tracks: " << tracks.size() << endl;
   typedef reco::TrackCollection::const_iterator IT;
   for (IT it = tracks.begin(); it !=tracks.end(); ++it) {
@@ -146,18 +189,17 @@ bool SynchroFilter::filter(edm::Event&ev, const edm::EventSetup&es)
     if (dphi > M_PI) dphi-=2*M_PI;
     float eta = track.momentum().eta();
     float deta = eta-rpcEta;
+
+    if (fabs(dphi) < mindphi ) mindphi = fabs(dphi);
+    if (fabs(deta) < mindeta ) mindeta = fabs(deta);
+
     float pt_rec = track.pt();
-    if ( fabs(dphi) < 1.0 && fabs(deta) < 0.25 && pt_rec > 2.) {
+//    std::cout <<"RECO: pt:" <<pt_rec<<" phi: "<<phi<<" eta: "<<eta<<endl;
+    if ( fabs(dphi) < 1.2 && fabs(deta) < 0.25 && pt_rec > 2.) {
      matched = true;
- //    std::cout <<"MATCHED: pt:" <<pt_rec<<" phi: "<<phi<<" eta: "<<eta<<endl;
    }
    
 //    Analysis::print(track);
   }
-
-  if (matched) goodEvent=true;
-
-  return goodEvent;
-//  return true;
+  return matched;
 }
-

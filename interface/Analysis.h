@@ -1,3 +1,6 @@
+#ifndef Analysis_H
+#define Analysis_H
+
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "SimDataFormats/Track/interface/SimTrack.h"
@@ -68,3 +71,4 @@ private:
 
 };
 
+#endif
