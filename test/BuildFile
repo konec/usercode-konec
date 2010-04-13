@@ -14,6 +14,9 @@
 <library file="TrackAnalysis.cc" name=TrackAnalysis>
   <flags EDM_PLUGIN=1>
 </library>
+#<library file="DelayMerger.cc" name=DelayMerger>
+#  <flags EDM_PLUGIN=1>
+#</library>
 #<library file="L1Seeding.cc" name=L1Seeding>
 #  <flags EDM_PLUGIN=1>
 #</library>
