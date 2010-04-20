@@ -26,8 +26,9 @@ process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring(
 'file:/disk00/work/data/run132440.tmf/run132440_318_327.root',
 'file:/disk00/work/data/run132440.tmf/run132440_328_337.root',
 'file:/disk00/work/data/run132440.tmf/run132440_338_347.root',
-'file:/disk00/work/data/run132440.tmf/run132440_348_357.root' 
-))
+'file:/disk00/work/data/run132440.tmf/run132440_348_357.root'),
+inputCommands=cms.untracked.vstring( 'keep *', 'drop *_hltL1GtObjectMap_*_*')
+)
 
 
 # import of standard configurations
@@ -53,12 +54,12 @@ process.rpcMonitorRaw.writeHistograms = cms.untracked.bool(True)
 process.rpcMonitorRaw.histoFileName = cms.untracked.string("histos1.root")
 
 process.load("DQM.RPCMonitorClient.RPCMonitorLinkSynchro_cfi")
-process.rpcMonitorLinkSynchro.dumpDelays = cms.untracked.bool(True)
+process.rpcMonitorLinkSynchro.dumpDelays = cms.untracked.bool(False)
 process.rpcMonitorLinkSynchro.writeHistograms = cms.untracked.bool(True)
 process.rpcMonitorLinkSynchro.useFirstHitOnly = cms.untracked.bool(True)
 process.rpcMonitorLinkSynchro.histoFileName = cms.untracked.string("histos2.root")
 
-process.filter = cms.EDFilter("SynchroFilter")
+process.filter = cms.EDFilter("Filter_L1_GM")
 
 process.load("EventFilter.L1GlobalTriggerRawToDigi.l1GtUnpack_cfi")
 process.l1GtUnpack.DaqGtInputTag = cms.InputTag("source")
@@ -77,11 +78,8 @@ process.dqmSaver.convention = 'Online'
 process.dqmEnv.subSystemFolder = 'R2DTEST'
 
 process.MessageLogger = cms.Service("MessageLogger",
-    #debugModules = cms.untracked.vstring('pixelVertices'),
-    #debugModules = cms.untracked.vstring('pixelTracks'),
-    debugModules = cms.untracked.vstring('rpcunpacker','rpcMonitorLinkSynchro'),
-    #debugModules = cms.untracked.vstring('*'),
-    #debugModules = cms.untracked.vstring(''),
+    #debugModules = cms.untracked.vstring('rpcunpacker','rpcMonitorLinkSynchro'),
+    debugModules = cms.untracked.vstring(''),
     destinations = cms.untracked.vstring('cout'),
     cout = cms.untracked.PSet( threshold = cms.untracked.string('DEBUG'))
 )

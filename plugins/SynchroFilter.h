@@ -11,7 +11,7 @@ public:
   explicit SynchroFilter(const edm::ParameterSet&);
   ~SynchroFilter();
 private:
-  bool checkMatching(float rpcEta, float rpcPhi, edm::Event&);
+  bool checkMatching(float rpcEta, float rpcPhi, edm::Event&, const edm::EventSetup& es);
   virtual bool filter(edm::Event&, const edm::EventSetup&);
   virtual void endJob() {} 
   TH1D *hDeltaPhi, *hDeltaEta;

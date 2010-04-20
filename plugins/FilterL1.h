@@ -8,9 +8,9 @@ namespace edm {class ParameterSet; class Event; class EventSetup; }
 class FilterL1 :  public edm::EDFilter {
 public:
   explicit FilterL1(const edm::ParameterSet&);
-  ~FilterL1() {}
-private:
+  virtual ~FilterL1() {}
   virtual bool filter(edm::Event&, const edm::EventSetup&);
+private:
   virtual void endJob() {} 
 };
 #endif

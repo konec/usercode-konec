@@ -25,9 +25,5 @@ DEFINE_FWK_EVENTSETUP_MODULE(SimpleLayersESProducer);
 #include "FilterOrbit.h"
 DEFINE_FWK_MODULE(FilterOrbit);
 
-#include "FilterL1.h"
-DEFINE_ANOTHER_FWK_MODULE(FilterL1);
-
-#include "SynchroFilter.h"
-DEFINE_ANOTHER_FWK_MODULE(SynchroFilter);
-
+#include "Filter_L1_GM.h"
+DEFINE_ANOTHER_FWK_MODULE(Filter_L1_GM);
