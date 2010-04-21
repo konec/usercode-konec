@@ -13,6 +13,17 @@
 <use name=DataFormats/L1GlobalMuonTrigger>
 <use name=DataFormats/L1GlobalTrigger>
 
+<use name=DQMServices/Core>
+<use name=DQMServices/ClientConfig>
+
+
+<use name=Geometry/RPCGeometry>
+<use name=Geometry/CommonDetUnit>
+<use name=Geometry/Records>
+<use name=EventFilter/RPCRawToDigi>
+<use name=DataFormats/RPCDigi>
+<use name=DataFormats/FEDRawData>
+
 
 <export>
   <lib name=UserCodekonec>

@@ -24,6 +24,11 @@ DEFINE_FWK_EVENTSETUP_MODULE(SimpleLayersESProducer);
 
 #include "FilterOrbit.h"
 DEFINE_FWK_MODULE(FilterOrbit);
-
 #include "Filter_L1_GM.h"
 DEFINE_ANOTHER_FWK_MODULE(Filter_L1_GM);
+#include "RPCMonitorLinkSynchroWithSelector.h"
+DEFINE_ANOTHER_FWK_MODULE(RPCMonitorLinkSynchroWithSelector);
+#include "RPCMonitorLinkSynchroMerger.h"
+DEFINE_ANOTHER_FWK_MODULE(RPCMonitorLinkSynchroMerger);
+
+

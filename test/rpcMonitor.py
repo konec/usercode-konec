@@ -53,11 +53,12 @@ process.load("DQM.RPCMonitorClient.RPCMonitorRaw_cfi")
 process.rpcMonitorRaw.writeHistograms = cms.untracked.bool(True)
 process.rpcMonitorRaw.histoFileName = cms.untracked.string("histos1.root")
 
-process.load("DQM.RPCMonitorClient.RPCMonitorLinkSynchro_cfi")
-process.rpcMonitorLinkSynchro.dumpDelays = cms.untracked.bool(False)
-process.rpcMonitorLinkSynchro.writeHistograms = cms.untracked.bool(True)
-process.rpcMonitorLinkSynchro.useFirstHitOnly = cms.untracked.bool(True)
-process.rpcMonitorLinkSynchro.histoFileName = cms.untracked.string("histos2.root")
+process.rpcLinkSynchroSelector =  cms.EDAnalyzer("RPCMonitorLinkSynchroWithSelector",
+  dumpDelays = cms.untracked.bool(True),
+  writeHistograms = cms.untracked.bool(True),
+  histoFileName = cms.untracked.string("links.root"),
+  useFirstHitOnly = cms.untracked.bool(False)
+)
 
 process.filter = cms.EDFilter("Filter_L1_GM")
 
@@ -85,4 +86,4 @@ process.MessageLogger = cms.Service("MessageLogger",
 )
 
 process.p = cms.Path( process.l1GtUnpack *process.filter *process.rpcunpacker *process.rpcFEDIntegrity 
- *process.rpcMonitorRaw *process.rpcMonitorLinkSynchro*process.l1trpctf *process.dqmEnv*process.dqmSaver)
+ *process.rpcMonitorRaw *process.rpcLinkSynchroSelector*process.l1trpctf *process.dqmEnv*process.dqmSaver)
