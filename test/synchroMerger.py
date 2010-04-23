@@ -8,10 +8,13 @@ process.load("DQMServices.Core.DQM_cfg")
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.GlobalTag.globaltag = 'START36_V3::All'
 
-process.merger =  cms.EDAnalyzer("RPCMonitorLinkSynchroMerger",
-  dumpDelays = cms.untracked.bool(True),
+process.merger =  cms.EDAnalyzer("LinkSynchroMerger",
   writeHistograms = cms.untracked.bool(True),
   histoFileName = cms.untracked.string("merge.root"),
+  linkMonitorPSet = cms.PSet(
+    useFirstHitOnly = cms.untracked.bool(True),
+    dumpDelays = cms.untracked.bool(True)
+  ),
   preFillLinkSynchroFileNames=cms.untracked.vstring(
        'jobs/run132440-442/out.txt',
        'jobs/run132471-478/out.txt',

@@ -28,17 +28,21 @@ using namespace edm;
 using namespace std;
 
 FilterL1::FilterL1(const edm::ParameterSet& cfg)
+  : theCounter(0),l1MuReadout(cfg.getParameter<edm::InputTag>("l1MuReadout"))
 { }
+
+FilterL1::~FilterL1()
+{
+  std::cout <<"FilterL1, counter is: "<<theCounter<< std::endl;
+}
 
 bool FilterL1::filter(edm::Event&ev, const edm::EventSetup&es)
 {
 
   bool goodEvent = false;
-// if (   ev.id().event() == 3856444 ) goodEvent = true;
       
   edm::Handle<L1MuGMTReadoutCollection> pCollection;
-  InputTag rpctfSource_("l1GtUnpack");
-  ev.getByLabel(rpctfSource_,pCollection);
+  ev.getByLabel(l1MuReadout,pCollection);
 
   L1MuGMTReadoutCollection const* gmtrc = pCollection.product();
   if (!gmtrc) return goodEvent;
@@ -107,6 +111,7 @@ bool FilterL1::filter(edm::Event&ev, const edm::EventSetup&es)
   if ( brlRPC || fwdRPC)  std::cout << str.str() << std::endl;
 //  if (brlRPC || fwdRPC || CSC || DT) goodEvent = true;
   if (brlRPC || fwdRPC) goodEvent = true;
+  if (goodEvent) theCounter++;
   return goodEvent;
 //  return true;
 }
