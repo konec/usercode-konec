@@ -44,14 +44,14 @@ process.load('Configuration.StandardSequences.RawToDigi_Data_cff')
 process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 
-process.load("EventFilter.RPCRawToDigi.RPCSQLiteCabling_cfi")
-process.RPCCabling.connect = 'sqlite_file:RPCEMap2.db'
-process.es_prefer_RPCEMap = cms.ESPrefer("PoolDBESSource","RPCCabling");
+#process.load("EventFilter.RPCRawToDigi.RPCSQLiteCabling_cfi")
+#process.RPCCabling.connect = 'sqlite_file:RPCEMap2.db'
+#process.es_prefer_RPCEMap = cms.ESPrefer("PoolDBESSource","RPCCabling");
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
-#process.GlobalTag.globaltag = 'MC_36Y_V4::All'
+process.GlobalTag.globaltag = 'MC_36Y_V4::All'
 #process.GlobalTag.globaltag = 'START36_V4::All'
-process.GlobalTag.globaltag = 'GR10_P_V4::All'
+#process.GlobalTag.globaltag = 'GR10_P_V4::All'
 
 process.load("L1TriggerConfig.L1GtConfigProducers.L1GtConfig_cff")
 process.load("L1TriggerConfig.GMTConfigProducers.L1MuGMTParametersConfig_cff")
