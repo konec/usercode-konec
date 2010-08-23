@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Analysis")
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
-process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:DoubleMu_3m_xy.root'
+process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:DoubleMu_3_xy.root'
 ))
 
 # import of standard configurations
@@ -78,7 +78,7 @@ process.pixelTracks.OrderedHitsFactoryPSet.GeneratorPSet = cms.PSet ( PixelTripl
 process.pixelTracks.FitterPSet = cms.PSet(FitterPSet)
 
 
-process.analysis = cms.EDFilter("TrackAnalysis",
+process.analysis = cms.EDAnalyzer("TrackAnalysis",
   TrackCollection = cms.string("pixelTracks"),
 #  TrackCollection = cms.string("preFilterZeroStepTracks"),
   AssociatorPSet = cms.PSet(

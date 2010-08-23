@@ -1,6 +1,5 @@
 #include "FWCore/PluginManager/interface/ModuleDef.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-DEFINE_SEAL_MODULE();
 
 #include "RecoTracker/TkTrackingRegions/interface/TrackingRegionProducerFactory.h"
 #include "RecoTracker/TkTrackingRegions/interface/TrackingRegionProducer.h"
@@ -21,20 +20,3 @@ DEFINE_EDM_PLUGIN(OrderedHitsGeneratorFactory, SimpleSingleHitGenerator, "Simple
 #include "FWCore/Utilities/interface/typelookup.h"
 #include "SimpleLayersESProducer.h"
 DEFINE_FWK_EVENTSETUP_MODULE(SimpleLayersESProducer);
-
-#include "FilterBX.h"
-DEFINE_FWK_MODULE(FilterBX);
-
-#include "FilterOrbit.h"
-DEFINE_FWK_MODULE(FilterOrbit);
-
-#include "Filter_L1_GM.h"
-DEFINE_ANOTHER_FWK_MODULE(Filter_L1_GM);
-
-#include "LinkSynchroAnalysis.h"
-DEFINE_ANOTHER_FWK_MODULE(LinkSynchroAnalysis);
-
-#include "LinkSynchroMerger.h"
-DEFINE_ANOTHER_FWK_MODULE(LinkSynchroMerger);
-
-
