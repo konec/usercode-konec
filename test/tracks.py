@@ -2,8 +2,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Analysis")
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
-process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:DoubleMu_3_xy.root'
-))
+process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:DoubleMu_3_xy.root'))
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -18,7 +17,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 #process.GlobalTag.globaltag = 'STARTUP31X_V1::All'
 #process.GlobalTag.globaltag = 'MC_31X_V9::All'
 #process.GlobalTag.globaltag ='STARTUP3X_V8N::All'
-process.GlobalTag.globaltag = 'MC_36Y_V2::All'
+process.GlobalTag.globaltag = 'MC_36Y_V10::All'
 
 
 
@@ -72,7 +71,7 @@ FitterPSet = cms.PSet(
 )
 
 
-process.pixelTracks.RegionFactoryPSet= cms.PSet( BBlock )
+process.pixelTracks.RegionFactoryPSet= cms.PSet( GBlock )
 process.pixelTracks.FilterPSet.ComponentName = cms.string('none')
 process.pixelTracks.OrderedHitsFactoryPSet.GeneratorPSet = cms.PSet ( PixelTripletHLTGenerator )
 process.pixelTracks.FitterPSet = cms.PSet(FitterPSet)

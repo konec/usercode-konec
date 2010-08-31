@@ -92,7 +92,7 @@ void TrackAnalysis::analyze(
   typedef reco::TrackCollection::const_iterator IT;
   for (IT it = tracks.begin(); it !=tracks.end(); ++it) {
     const reco::Track & track = *it;
-//    Analysis::print(track);
+    Analysis::print(track);
     hPt->Fill(track.pt());
     hPhi->Fill(track.momentum().phi());
   }
