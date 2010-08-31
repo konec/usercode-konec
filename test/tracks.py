@@ -17,7 +17,8 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 #process.GlobalTag.globaltag = 'STARTUP31X_V1::All'
 #process.GlobalTag.globaltag = 'MC_31X_V9::All'
 #process.GlobalTag.globaltag ='STARTUP3X_V8N::All'
-process.GlobalTag.globaltag = 'MC_36Y_V10::All'
+#process.GlobalTag.globaltag = 'MC_36Y_V10::All'
+process.GlobalTag.globaltag = 'MC_38Y_V9::All'
 
 
 
