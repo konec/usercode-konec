@@ -1,8 +1,9 @@
 import FWCore.ParameterSet.Config as cms
 process = cms.Process("Analysis")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
-process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:DoubleMu_3_xy.root'))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(7))
+#process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:DoubleMu_3_xy.root'))
+process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:input.root'))
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -24,9 +25,9 @@ process.GlobalTag.globaltag = 'MC_38Y_V9::All'
 
 process.MessageLogger = cms.Service("MessageLogger",
     #debugModules = cms.untracked.vstring('pixelVertices'),
-    debugModules = cms.untracked.vstring('pixelTracks'),
+    #debugModules = cms.untracked.vstring('pixelTracks'),
     #debugModules = cms.untracked.vstring('*'),
-    #debugModules = cms.untracked.vstring(''),
+    debugModules = cms.untracked.vstring(''),
     destinations = cms.untracked.vstring('cout'),
     cout = cms.untracked.PSet( threshold = cms.untracked.string('DEBUG'))
 )
@@ -37,6 +38,7 @@ process.load('RecoLocalTracker/Configuration/RecoLocalTracker_cff')
 process.load("RecoPixelVertexing.PixelTrackFitting.PixelTracks_cff")
 from RecoPixelVertexing.PixelTrackFitting.PixelTracks_cff import *
 from RecoPixelVertexing.PixelTrackFitting.PixelFitterByConformalMappingAndLine_cfi import *
+process.load("RecoPixelVertexing.PixelTrackFitting.KFBasedPixelFitter")
 
 
 BBlock = cms.PSet(
@@ -58,22 +60,28 @@ GBlock= cms.PSet(
      ptMin = cms.double(0.875),
      originHalfLength = cms.double(15.9),
      originRadius = cms.double(0.2),
-     originXPos = cms.double(0.2),
-     originYPos = cms.double(0.4),
-     originZPos = cms.double(-2.4)
+     originXPos = cms.double(0.0),
+     originYPos = cms.double(0.0),
+     originZPos = cms.double(0.0)
   )
 )
 
-FitterPSet = cms.PSet(
+FitterPSet =  cms.PSet (process.KFBasedPixelFitter)
+
+#FitterPSet = cms.PSet(
 #  ComponentName = cms.string('PixelFitterByConformalMappingAndLine'),
 #  fixImpactParameter = cms.double(0.),
-  ComponentName = cms.string('PixelFitterByHelixProjections'),
-  TTRHBuilder   = cms.string('TTRHBuilderWithoutAngle4PixelTriplets')
-)
+#  ComponentName = cms.string('PixelFitterByHelixProjections'),
+#  ComponentName = cms.string('KFBasedPixelFitter'),
+#  propagator = cms.string('PropagatorWithMaterial'),
+#  TTRHBuilder   = cms.string('TTRHBuilderWithoutAngle4PixelTriplets')
+#)
+
 
 
 process.pixelTracks.RegionFactoryPSet= cms.PSet( GBlock )
 process.pixelTracks.FilterPSet.ComponentName = cms.string('none')
+process.pixelTracks.CleanerPSet.ComponentName = cms.string('none')
 process.pixelTracks.OrderedHitsFactoryPSet.GeneratorPSet = cms.PSet ( PixelTripletHLTGenerator )
 process.pixelTracks.FitterPSet = cms.PSet(FitterPSet)
 
@@ -98,5 +106,7 @@ process.analysis = cms.EDAnalyzer("TrackAnalysis",
      ptMinLeadingTrack = cms.double(0.05)
   )
 )
-process.p=cms.Path(process.siPixelDigis*process.pixeltrackerlocalreco*process.pixelTracks*process.analysis)
+
+process.p=cms.Path(process.siPixelRecHits*process.pixelTracks*process.analysis)
+#process.p=cms.Path(process.siPixelDigis*process.pixeltrackerlocalreco*process.pixelTracks*process.analysis)
 #process.p=cms.Path(process.siPixelDigis*process.pixeltrackerlocalreco*process.offlineBeamSpot*process.pixelTracks*process.pixelVertices*process.analysis)
