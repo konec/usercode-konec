@@ -66,7 +66,8 @@ GBlock= cms.PSet(
   )
 )
 
-FitterPSet =  cms.PSet (process.KFBasedPixelFitter)
+#FitterPSet =  cms.PSet (process.KFBasedPixelFitter)
+FitterPSet =  cms.PSet (process.PixelFitterByHelixProjections)
 
 #FitterPSet = cms.PSet(
 #  ComponentName = cms.string('PixelFitterByConformalMappingAndLine'),
