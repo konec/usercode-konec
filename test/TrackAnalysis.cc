@@ -80,6 +80,16 @@ void TrackAnalysis::analyze(
   cout <<"*** TrackAnalysisA, analyze event: " << ev.id()<<" event count:"<<++eventCount << endl;
 
   edm::ParameterSet assPset = theConfig.getParameter<edm::ParameterSet>("AssociatorPSet");
+  theAnalysis->init(ev,es,0);
+  const SimTrack* myTrack = theAnalysis->bestTrack();
+  
+  if(myTrack)  Analysis::print(*myTrack);
+  else {
+    std::cout <<" NO MY TRACK!"<<std::endl;
+    return;
+  }
+  Analysis::print( *(theAnalysis->vertex(myTrack)));
+  
 //  TrackerHitAssociator assoc(ev, assPset);
 
   edm::Handle<reco::TrackCollection> trackCollection;
@@ -99,8 +109,7 @@ void TrackAnalysis::analyze(
 
 
 //  theAnalysis->init(ev,es,&assoc);
-//  theAnalysis->init(ev,es,0);
-//  theAnalysis->checkEfficiency(tracks);
+  theAnalysis->checkEfficiency(tracks);
 
 
 }

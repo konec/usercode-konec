@@ -1,9 +1,10 @@
 import FWCore.ParameterSet.Config as cms
 process = cms.Process("Analysis")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(7))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 #process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:DoubleMu_3_xy.root'))
-process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:input.root'))
+process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:input_pt1.root'))
+#process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:SingleMuPt1_cfi_GEN_SIM_DIGI_L1_DIGI2RAW_HLT_RAW2DIGI_L1Reco.root'))
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -19,9 +20,10 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 #process.GlobalTag.globaltag = 'MC_31X_V9::All'
 #process.GlobalTag.globaltag ='STARTUP3X_V8N::All'
 #process.GlobalTag.globaltag = 'MC_36Y_V10::All'
-process.GlobalTag.globaltag = 'MC_38Y_V9::All'
+#process.GlobalTag.globaltag = 'MC_38Y_V9::All'
+process.GlobalTag.globaltag = 'MC_39Y_V2::All'
 
-
+#process.load("TrackingTools.MaterialEffects.Propagators_cff")
 
 process.MessageLogger = cms.Service("MessageLogger",
     #debugModules = cms.untracked.vstring('pixelVertices'),
@@ -45,9 +47,9 @@ BBlock = cms.PSet(
   ComponentName = cms.string('GlobalRegionProducerFromBeamSpot'),
   RegionPSet = cms.PSet(
     precise = cms.bool(True),
-    nSigmaZ = cms.double(3.0),
     originRadius = cms.double(0.2),
-    ptMin = cms.double(0.8),
+    nSigmaZ = cms.double(3.0),
+    ptMin = cms.double(0.5),
     beamSpot = cms.InputTag("offlineBeamSpot")
   )
 )
@@ -60,14 +62,17 @@ GBlock= cms.PSet(
      ptMin = cms.double(0.875),
      originHalfLength = cms.double(15.9),
      originRadius = cms.double(0.2),
-     originXPos = cms.double(0.0),
-     originYPos = cms.double(0.0),
+     originXPos = cms.double(0.25),
+     originYPos = cms.double(0.4),
      originZPos = cms.double(0.0)
   )
 )
 
-#FitterPSet =  cms.PSet (process.KFBasedPixelFitter)
-FitterPSet =  cms.PSet (process.PixelFitterByHelixProjections)
+FitterPSet =  cms.PSet (process.KFBasedPixelFitter)
+#FitterPSet.propagator = cms.string('PropagatorWithMaterial')
+#FitterPSet.propagator = cms.string('PropagatorWithMaterialOpposite')
+#FitterPSet.propagator = cms.string('AnyDirectionAnalyticalPropagator')
+#FitterPSet =  cms.PSet (process.PixelFitterByHelixProjections)
 
 #FitterPSet = cms.PSet(
 #  ComponentName = cms.string('PixelFitterByConformalMappingAndLine'),
@@ -80,7 +85,7 @@ FitterPSet =  cms.PSet (process.PixelFitterByHelixProjections)
 
 
 
-process.pixelTracks.RegionFactoryPSet= cms.PSet( GBlock )
+process.pixelTracks.RegionFactoryPSet= cms.PSet( BBlock )
 process.pixelTracks.FilterPSet.ComponentName = cms.string('none')
 process.pixelTracks.CleanerPSet.ComponentName = cms.string('none')
 process.pixelTracks.OrderedHitsFactoryPSet.GeneratorPSet = cms.PSet ( PixelTripletHLTGenerator )
@@ -104,10 +109,10 @@ process.analysis = cms.EDAnalyzer("TrackAnalysis",
   ),
   AnalysisPSet = cms.PSet(
      useParticleId = cms.int32(13),
-     ptMinLeadingTrack = cms.double(0.05)
+     ptMinLeadingTrack = cms.double(0.5)
   )
 )
 
-process.p=cms.Path(process.siPixelRecHits*process.pixelTracks*process.analysis)
-#process.p=cms.Path(process.siPixelDigis*process.pixeltrackerlocalreco*process.pixelTracks*process.analysis)
+#process.p=cms.Path(process.siPixelRecHits*process.pixelTracks*process.analysis)
+process.p=cms.Path(process.siPixelDigis*process.pixeltrackerlocalreco*process.offlineBeamSpot*process.pixelTracks*process.analysis)
 #process.p=cms.Path(process.siPixelDigis*process.pixeltrackerlocalreco*process.offlineBeamSpot*process.pixelTracks*process.pixelVertices*process.analysis)

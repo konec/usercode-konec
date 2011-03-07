@@ -44,6 +44,7 @@ public:
   void checkAlgoEfficiency2(const ctfseeding::SeedingLayerSets&, const OrderedSeedingHits& );
 
   static void print(const SimTrack & track) ;
+  static void print(const SimVertex& vertex); 
   static void print(const reco::Track & track, const math::XYZPoint & bs=math::XYZPoint(0,0,0));
 private:
   unsigned int matchedHits(unsigned int trackId, const SeedingHitSet& hits);

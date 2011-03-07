@@ -85,9 +85,12 @@ Analysis::Analysis( const edm::ParameterSet& conf)
 
   hMap["h_Pt"] = new TH1D("h_Pt","h_Pt",100, -1.2, 1.2);
   hMap["h_PullPt"] = new TH1D("h_PullPt","h_PullPt",100,-8.,8.);
-  hMap["h_Tip"] = new TH1D("h_Tip","h_Tip",100, -0.06, 0.06);
+  hMap["h_Tip"] = new TH1D("h_Tip","h_Tip",100, -0.1, 0.1);
+  hMap["h_TipError"] = new TH1D("h_TipError","h_TipError",100, 0., 0.2);
   hMap["h_PullTip"] = new TH1D("h_PullTip","h_PullTip",100, -8.0, 8.0);
-  hMap["h_Zip"] = new TH1D("h_Zip","h_Zip",100, -0.08, 0.08);
+  hMap["h_Zip"] = new TH1D("h_Zip","h_Zip",100, -0.1, 0.1);
+  hMap["h_ZipV"] = new TH1D("h_ZipV","h_ZipV",100, -0.08, 0.08);
+  hMap["h_ZipError"] = new TH1D("h_ZipError","h_ZipError",100,0.,0.1);
   hMap["h_PullZip"] = new TH1D("h_PullZip","h_PullZip",100, -8., 8.0);
   hMap["h_Cot"] = new TH1D("h_Cot","h_Cot",100, -0.04, 0.04);
   hMap["h_PullCot"] = new TH1D("h_PullCot","h_PullCot",100, -8., 8.0);
@@ -133,7 +136,7 @@ const SimTrack * Analysis::bestTrack() const
     float pt_gen = track.momentum().pt();
     if (pt_gen < ptMin) continue;
 
-    if (sqrt(vertex(&track)->position().perp2()) > 0.2) continue;
+    if (sqrt(vertex(&track)->position().perp2()) > 0.6) continue;
 
     myTrack = &track;
     ptMin = pt_gen;
@@ -301,7 +304,7 @@ void Analysis::checkAlgoEfficiency2(const SeedingLayerSets &layersSets, const Or
 void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
 {
   typedef  SimTrackContainer::const_iterator IP;
-  math::XYZPoint bs(0.2,0.4,-2.4);
+//  math::XYZPoint bs(0.2,0.4,-2.4);
 //  math::XYZPoint bs(0.0,0.0,-2.5);
 
   typedef SeedingHitSet::RecHits RecHits;
@@ -314,6 +317,9 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
     float eta_gen = track.momentum().eta();
     float pt_gen = track.momentum().pt();
     std::cout <<" pt_gen is: " << pt_gen << endl;
+    math::XYZPoint bs(vertex(&track)->position().x(),
+                      vertex(&track)->position().y(),
+                      vertex(&track)->position().z());
 
     bool matched = false;
     typedef reco::TrackCollection::const_iterator IT;
@@ -329,10 +335,12 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
       hMap["h_Pt"]->Fill((pt_gen - pt_rec)/pt_gen);
       hMap["h_PullPt"]->Fill((pt_gen - pt_rec)/(*it).ptError());
       hMap["h_Tip"]->Fill((*it).dxy(bs));
+      hMap["h_TipError"]->Fill((*it).d0Error());
       hMap["h_PullTip"]->Fill((*it).dxy(bs)/(*it).d0Error());
       hMap["h_Zip"]->Fill( (*it).dz(bs) );
-//      hMap["h_Zip"]->Fill( (*it).dz(bs)-vertex(&track)->position().z() );
-      hMap["h_PullZip"]->Fill(( (*it).dz(bs)-vertex(&track)->position().z())/(*it).dzError());
+//      hMap["h_PullZip"]->Fill(( (*it).dz(bs)-vertex(&track)->position().z())/(*it).dzError());
+      hMap["h_ZipError"]->Fill( (*it).dzError());
+      hMap["h_PullZip"]->Fill( (*it).dz(bs)/(*it).dzError());
 
       float cosTheta = cos(it->theta());
       float sinTheta = sin(it->theta());
@@ -453,6 +461,11 @@ void Analysis::print(const SimTrack & track)
           <<" vtx: "<<track.vertIndex()<<" type: "<<track.type()
           << endl;
 
+}
+
+void Analysis::print(const SimVertex & vertex)
+{
+  std::cout <<vertex<< std::endl;
 }
 //----------------------------------------------------------------------------------------
 //std::string Analysis::print(const SeedingHit & hit) 
