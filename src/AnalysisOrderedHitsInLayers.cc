@@ -31,7 +31,7 @@ bool AnalysisOrderedHitsInLayers::onlySingleHits() const
 
 bool AnalysisOrderedHitsInLayers::increaseCounter(unsigned int depth)
 {
-  if (depth < 0 || depth >= theIndexCounters.size()) return false;
+  if (depth >= theIndexCounters.size()) return false;
   theIndexCounters[depth]++;
   if (theIndexCounters[depth] > theHitsInLayers[depth].size()-1) {
     bool nextIncrease = increaseCounter(depth-1); 
