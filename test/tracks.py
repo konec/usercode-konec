@@ -2,7 +2,6 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Analysis")
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
-#process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:DoubleMu_3_xy.root'))
 process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:input_pt1.root'))
 #process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:SingleMuPt1_cfi_GEN_SIM_DIGI_L1_DIGI2RAW_HLT_RAW2DIGI_L1Reco.root'))
 
@@ -15,13 +14,18 @@ process.load('Configuration.StandardSequences.RawToDigi_cff')
 process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+#process.GlobalTag.globaltag = 'START311_V2::All'
+#process.GlobalTag.globaltag = 'DESIGN311_V1::All'
+process.GlobalTag.globaltag = 'MC_311_V2::All'
+#process.GlobalTag.globaltag = 'MC_39Y_V7::All'
+
 #process.GlobalTag.globaltag = 'IDEAL_31X::All'
 #process.GlobalTag.globaltag = 'STARTUP31X_V1::All'
 #process.GlobalTag.globaltag = 'MC_31X_V9::All'
 #process.GlobalTag.globaltag ='STARTUP3X_V8N::All'
 #process.GlobalTag.globaltag = 'MC_36Y_V10::All'
 #process.GlobalTag.globaltag = 'MC_38Y_V9::All'
-process.GlobalTag.globaltag = 'MC_39Y_V2::All'
+#process.GlobalTag.globaltag = 'MC_39Y_V2::All'
 
 #process.load("TrackingTools.MaterialEffects.Propagators_cff")
 
@@ -113,6 +117,11 @@ process.analysis = cms.EDAnalyzer("TrackAnalysis",
   )
 )
 
+
+#input_pt10
 #process.p=cms.Path(process.siPixelRecHits*process.pixelTracks*process.analysis)
+
+#input_pt1
 process.p=cms.Path(process.siPixelDigis*process.pixeltrackerlocalreco*process.offlineBeamSpot*process.pixelTracks*process.analysis)
+
 #process.p=cms.Path(process.siPixelDigis*process.pixeltrackerlocalreco*process.offlineBeamSpot*process.pixelTracks*process.pixelVertices*process.analysis)
