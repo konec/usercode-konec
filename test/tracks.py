@@ -1,9 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 process = cms.Process("Analysis")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
-process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:input_pt1B.root'))
-#process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:SingleMuPt1_cfi_GEN_SIM_DIGI_L1_DIGI2RAW_HLT_RAW2DIGI_L1Reco.root'))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000))
+process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:data/Single_TkVpt5_r99_m_nev25000.root'))
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -15,23 +14,9 @@ process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
-process.GlobalTag.globaltag = 'GR_R_42_V13::All'
-#process.GlobalTag.globaltag = 'MC_42_V12::All'
+#process.GlobalTag.globaltag = 'GR_R_42_V12::All'
+process.GlobalTag.globaltag = 'MC_42_V12::All'
 #process.GlobalTag.globaltag = 'START42_V12::All'
-
-#process.GlobalTag.globaltag = 'START311_V2::All'
-#process.GlobalTag.globaltag = 'DESIGN311_V1::All'
-#process.GlobalTag.globaltag = 'MC_311_V2::All'
-#process.GlobalTag.globaltag = 'MC_39Y_V7::All'
-#process.GlobalTag.globaltag = 'GR_P_V14::All'
-
-#process.GlobalTag.globaltag = 'IDEAL_31X::All'
-#process.GlobalTag.globaltag = 'STARTUP31X_V1::All'
-#process.GlobalTag.globaltag = 'MC_31X_V9::All'
-#process.GlobalTag.globaltag ='STARTUP3X_V8N::All'
-#process.GlobalTag.globaltag = 'MC_36Y_V10::All'
-#process.GlobalTag.globaltag = 'MC_38Y_V9::All'
-#process.GlobalTag.globaltag = 'MC_39Y_V2::All'
 
 #process.load("TrackingTools.MaterialEffects.Propagators_cff")
 
@@ -48,8 +33,8 @@ process.load("RecoTracker.Configuration.RecoTracker_cff")
 from RecoTracker.Configuration.RecoTracker_cff import *
 process.load('RecoLocalTracker/Configuration/RecoLocalTracker_cff')
 process.load("RecoPixelVertexing.PixelTrackFitting.PixelTracks_cff")
-from RecoPixelVertexing.PixelTrackFitting.PixelTracks_cff import *
-from RecoPixelVertexing.PixelTrackFitting.PixelFitterByConformalMappingAndLine_cfi import *
+#from RecoPixelVertexing.PixelTrackFitting.PixelTracks_cff import *
+#from RecoPixelVertexing.PixelTrackFitting.PixelFitterByConformalMappingAndLine_cfi import *
 process.load("RecoPixelVertexing.PixelTrackFitting.KFBasedPixelFitter")
 
 
@@ -78,7 +63,9 @@ GBlock= cms.PSet(
   )
 )
 
-FitterPSet =  cms.PSet (process.KFBasedPixelFitter)
+
+FitterPSet =  cms.PSet (process.PixelFitterByHelixProjections)
+#FitterPSet =  cms.PSet (process.KFBasedPixelFitter)
 #FitterPSet.propagator = cms.string('PropagatorWithMaterial')
 #FitterPSet.propagator = cms.string('PropagatorWithMaterialOpposite')
 #FitterPSet.propagator = cms.string('AnyDirectionAnalyticalPropagator')

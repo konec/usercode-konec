@@ -6,9 +6,6 @@
 <use   name="Utilities/Timing"/>
 <use   name="UserCode/konec"/>
 <use   name="RecoPixelVertexing/PixelTrackFitting"/>
-<library   file="OrderedHitsAnalysis.cc" name="OrderedHitsAnalysis">
-  <flags   EDM_PLUGIN="1"/>
-</library>
-<library   file="TrackAnalysis.cc" name="TrackAnalysis">
+<library   file="ErrorParamAnalysis.cc" name="ErrorParamAnalysis">
   <flags   EDM_PLUGIN="1"/>
 </library>

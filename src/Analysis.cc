@@ -131,7 +131,7 @@ const SimTrack * Analysis::bestTrack() const
     if ( abs(track.type()) != particleId) continue;
 
     float eta_gen = track.momentum().eta();
-    if ( fabs(eta_gen) > 2.4 ) continue;
+    if ( fabs(eta_gen) > 2.5 ) continue;
 
     float pt_gen = track.momentum().pt();
     if (pt_gen < ptMin) continue;
@@ -163,16 +163,16 @@ void Analysis::init(const edm::Event& ev, const edm::EventSetup& es, TrackerHitA
   Handle<SimTrackContainer> simTk;
   ev.getByLabel("g4SimHits",simTk);
   theSimTracks = *(simTk.product());
-  cout <<" Analysis has: " << theSimTracks.size()<<" tracks"<<endl;
+//  cout <<" Analysis has: " << theSimTracks.size()<<" tracks"<<endl;
 
   Handle<SimVertexContainer> simVc;
   ev.getByLabel("g4SimHits", simVc);
   theSimVertices = *(simVc.product());
-  cout <<" Analysis has: " << theSimVertices.size()<<" vertices"<<endl;
+//  cout <<" Analysis has: " << theSimVertices.size()<<" vertices"<<endl;
 
   Handle<GenParticleCollection> genParticles;
   ev.getByLabel("genParticles", genParticles);
-  cout <<" Analysis has: "<< genParticles->size() << " particles!" << endl;
+//  cout <<" Analysis has: "<< genParticles->size() << " particles!" << endl;
 /*
    for(size_t i = 0; i < genParticles->size(); ++ i) {
      const GenParticle & p = (*genParticles)[i];
