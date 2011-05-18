@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Analysis")
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
-process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:input_pt1.root'))
+process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:input_pt1B.root'))
 #process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:SingleMuPt1_cfi_GEN_SIM_DIGI_L1_DIGI2RAW_HLT_RAW2DIGI_L1Reco.root'))
 
 # import of standard configurations
@@ -14,10 +14,16 @@ process.load('Configuration.StandardSequences.RawToDigi_cff')
 process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+
+process.GlobalTag.globaltag = 'GR_R_42_V13::All'
+#process.GlobalTag.globaltag = 'MC_42_V12::All'
+#process.GlobalTag.globaltag = 'START42_V12::All'
+
 #process.GlobalTag.globaltag = 'START311_V2::All'
 #process.GlobalTag.globaltag = 'DESIGN311_V1::All'
-process.GlobalTag.globaltag = 'MC_311_V2::All'
+#process.GlobalTag.globaltag = 'MC_311_V2::All'
 #process.GlobalTag.globaltag = 'MC_39Y_V7::All'
+#process.GlobalTag.globaltag = 'GR_P_V14::All'
 
 #process.GlobalTag.globaltag = 'IDEAL_31X::All'
 #process.GlobalTag.globaltag = 'STARTUP31X_V1::All'
