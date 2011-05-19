@@ -134,11 +134,11 @@ void ErrorParamAnalysis::bookParamHistos(float eta, float pt)
    theZipRes[key]  = new TH1D(key.name().c_str(), key.name().c_str(), 100, -val, val);
 
    key = HistoKey("hCotRes",eta,pt);
-   val=0.1; if (pt< 1.) val *=2; if (fabs(eta) > 2.) val *= 2;
+   val=0.05; if (pt<1.)val *=2; if(pt<0.5) val*=2; if(pt<0.35) val*=2; if (fabs(eta)>2.) val *= 2;
    theCotRes[key]  = new TH1D(key.name().c_str(), key.name().c_str(), 100, -val, val);
 
    key = HistoKey("hPhiRes",eta,pt);
-   val=0.1; if (pt< 1.) val *=2; if (fabs(eta) > 2.) val *= 2;
+   val=0.05; if (pt< 1.) val *=2;  if (pt< 0.35) val *=2;
    thePhiRes[key]  = new TH1D(key.name().c_str(), key.name().c_str(), 100, -val, val);
 
 }
@@ -164,6 +164,7 @@ void ErrorParamAnalysis::analyze(
   float cot_gen = simTrack->momentum().pz()/simTrack->momentum().pt();
   float eta_gen = simTrack->momentum().eta();
   float pt_gen  = simTrack->momentum().pt();
+  int   charge_gen = simTrack->charge();
 
   edm::Handle<reco::TrackCollection> trackCollection;
   std::string collectionLabel = theConfig.getParameter<std::string>("TrackCollection");
@@ -171,8 +172,14 @@ void ErrorParamAnalysis::analyze(
 
   typedef reco::TrackCollection::const_iterator IT;
 
+  const reco::Track* aTrack = 0;
+  double pt_max = 0.;
   for (IT it = trackCollection->begin(); it < trackCollection->end(); ++it) {
-    const reco::Track & track = *it;
+    if (it->charge() != charge_gen) continue;
+    if (it->pt() > pt_max) {pt_max = it->pt(); aTrack = &(*it); }
+  }
+  if (aTrack) {
+    const reco::Track & track = *aTrack;
     double pt_rec = track.pt();
     double tip    = track.dxy(bs);
     double zip    = track.dz(bs); 
@@ -180,7 +187,7 @@ void ErrorParamAnalysis::analyze(
     double phi    = track.momentum().phi(); 
 //    std::cout <<"ZIP: " << zip << std::endl;
 //    Analysis::print(track);
-    thePtRes[ HistoKey( "hPtRes",eta_gen,pt_gen)]->Fill(pt_rec/pt_gen-1.);
+    thePtRes[ HistoKey( "hPtRes",eta_gen,pt_gen)]->Fill(pt_gen/pt_rec-1.);
     theTipRes[ HistoKey( "hTipRes",eta_gen,pt_gen)]->Fill(tip);
     theZipRes[ HistoKey( "hZipRes",eta_gen,pt_gen)]->Fill(zip);
     theCotRes[ HistoKey( "hCotRes",eta_gen,pt_gen)]->Fill(cot-cot_gen);
