@@ -70,7 +70,7 @@ private:
   Analysis * theAnalysis;
   TH1D *hPhi, *hNum, *hPt; 
   typedef std::map<HistoKey, TH1D *> HistoMap;
-  HistoMap thePtRes, theTipRes, theZipRes;
+  HistoMap thePtRes, theTipRes, theZipRes, theCotRes, thePhiRes;
 };
 
 
@@ -111,6 +111,8 @@ void ErrorParamAnalysis::beginJob()
   for (IHM i=thePtRes.begin(); i!=thePtRes.end();++i) gHistos.Add(i->second);
   for (IHM i=theTipRes.begin(); i!=theTipRes.end();++i) gHistos.Add(i->second);
   for (IHM i=theZipRes.begin(); i!=theZipRes.end();++i) gHistos.Add(i->second);
+  for (IHM i=theCotRes.begin(); i!=theCotRes.end();++i) gHistos.Add(i->second);
+  for (IHM i=thePhiRes.begin(); i!=thePhiRes.end();++i) gHistos.Add(i->second);
 }
 
 void ErrorParamAnalysis::bookParamHistos(float eta, float pt)
@@ -131,6 +133,14 @@ void ErrorParamAnalysis::bookParamHistos(float eta, float pt)
    val=0.1; if (pt< 1.) val *=5; if (fabs(eta) > 2.) val *= 2;
    theZipRes[key]  = new TH1D(key.name().c_str(), key.name().c_str(), 100, -val, val);
 
+   key = HistoKey("hCotRes",eta,pt);
+   val=0.1; if (pt< 1.) val *=2; if (fabs(eta) > 2.) val *= 2;
+   theCotRes[key]  = new TH1D(key.name().c_str(), key.name().c_str(), 100, -val, val);
+
+   key = HistoKey("hPhiRes",eta,pt);
+   val=0.1; if (pt< 1.) val *=2; if (fabs(eta) > 2.) val *= 2;
+   thePhiRes[key]  = new TH1D(key.name().c_str(), key.name().c_str(), 100, -val, val);
+
 }
 
 void ErrorParamAnalysis::analyze(
@@ -150,7 +160,8 @@ void ErrorParamAnalysis::analyze(
 //     math::XYZPoint bs(0,0,0);
 
 //  Analysis::print(*simtrack);
-//  float phi_gen = simTrack->momentum().phi();
+  float phi_gen = simTrack->momentum().phi();
+  float cot_gen = simTrack->momentum().pz()/simTrack->momentum().pt();
   float eta_gen = simTrack->momentum().eta();
   float pt_gen  = simTrack->momentum().pt();
 
@@ -165,11 +176,15 @@ void ErrorParamAnalysis::analyze(
     double pt_rec = track.pt();
     double tip    = track.dxy(bs);
     double zip    = track.dz(bs); 
+    double cot    = track.pz()/track.pt(); 
+    double phi    = track.momentum().phi(); 
 //    std::cout <<"ZIP: " << zip << std::endl;
 //    Analysis::print(track);
     thePtRes[ HistoKey( "hPtRes",eta_gen,pt_gen)]->Fill(pt_rec/pt_gen-1.);
     theTipRes[ HistoKey( "hTipRes",eta_gen,pt_gen)]->Fill(tip);
     theZipRes[ HistoKey( "hZipRes",eta_gen,pt_gen)]->Fill(zip);
+    theCotRes[ HistoKey( "hCotRes",eta_gen,pt_gen)]->Fill(cot-cot_gen);
+    thePhiRes[ HistoKey( "hPhiRes",eta_gen,pt_gen)]->Fill(phi-phi_gen);
   }
 
 //  theAnalysis->checkEfficiency(tracks);
