@@ -1,8 +1,12 @@
 import FWCore.ParameterSet.Config as cms
 process = cms.Process("Analysis")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000))
-process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 'file:data/Single_TkVpt5_r99_m_nev25000.root'))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
+process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 
+'file:data/Single_TkVpt9_r00_p_nev10000.root',
+#'file:data/Single_TkVpt1.0_r00_m_nev10000.root',
+# 'file:data/Single_TkVpt1.0_r00_p_nev10000.root'
+))
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')

@@ -322,8 +322,20 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
                       vertex(&track)->position().z());
 
     bool matched = false;
+    const reco::Track * it = 0;
     typedef reco::TrackCollection::const_iterator IT;
-    for (IT it=tracks.begin(); it!=tracks.end(); it++) {
+    double pt_min = 0.;
+    for (IT iit=tracks.begin(); iit!=tracks.end(); iit++) {
+      float pt = (*iit).pt();
+      if (pt < pt_min) continue;
+      float eta_rec = (*iit).momentum().eta();
+      if ( fabs(eta_gen-eta_rec) < 0.15) {
+	      matched = true;
+	      pt_min = pt;
+	      it = &(*iit);
+      }
+    }
+    if (!it) return;
       float pt_rec = (*it).pt();
       float eta_rec = (*it).momentum().eta();
       if ( fabs(eta_gen-eta_rec) < 0.15) matched = true;
@@ -350,7 +362,6 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
       hMap["h_PullCot"]->Fill(dCotTheta / sqrt(errLambda2)/sqr(sinTheta));
 
       hMap["h_chi2"]->Fill((*it).chi2());
-    }
 
     if (fabs(eta_gen) < 2.1) {
       hEffPt_D->Fill(pt_gen+1.e-4);

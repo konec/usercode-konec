@@ -9,3 +9,6 @@
 <library   file="ErrorParamAnalysis.cc" name="ErrorParamAnalysis">
   <flags   EDM_PLUGIN="1"/>
 </library>
+<library   file="TrackAnalysis.cc" name="TrackAnalysis">
+  <flags   EDM_PLUGIN="1"/>
+</library>
