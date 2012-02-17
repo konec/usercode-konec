@@ -23,7 +23,7 @@
 #include "RecoTracker/TkSeedingLayers/interface/OrderedSeedingHits.h"
 #include "RecoTracker/TkSeedingLayers/interface/SeedingLayerSets.h"
 #include "RecoTracker/TkSeedingLayers/interface/SeedingHitSet.h"
-#include "AnalysisOrderedHitsInLayers.h"
+// #include "AnalysisOrderedHitsInLayers.h"
 
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/TrackReco/interface/Track.h"
@@ -198,6 +198,7 @@ void Analysis::init(const edm::Event& ev, const edm::EventSetup& es, TrackerHitA
 }
 
 //----------------------------------------------------------------------------------------
+/*
 void Analysis::checkAlgoEfficiency1(const SeedingLayerSets &layersSets, const OrderedSeedingHits& candidates)
 {
   for (SeedingLayerSets::const_iterator ils = layersSets.begin(); ils != layersSets.end(); ils++) {
@@ -241,7 +242,9 @@ void Analysis::checkAlgoEfficiency1(const SeedingLayerSets &layersSets, const Or
   }
   }
 }
+*/
 
+/*
 //-----------------------------------------------------------------------------------------
 void Analysis::checkAlgoEfficiency2(const SeedingLayerSets &layersSets, const OrderedSeedingHits& candidates)
 {
@@ -299,6 +302,7 @@ void Analysis::checkAlgoEfficiency2(const SeedingLayerSets &layersSets, const Or
     }
   }
 }
+*/
 
 //----------------------------------------------------------------------------------------
 void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
@@ -307,7 +311,7 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
 //  math::XYZPoint bs(0.2,0.4,-2.4);
 //  math::XYZPoint bs(0.0,0.0,-2.5);
 
-  typedef SeedingHitSet::RecHits RecHits;
+//  typedef SeedingHitSet::RecHits RecHits;
 
   for (IP ip=theSimTracks.begin(); ip != theSimTracks.end(); ip++) {
     const SimTrack & track = (*ip); 
@@ -378,6 +382,7 @@ void Analysis::checkEfficiency( const reco::TrackCollection & tracks)
 }
 
 //----------------------------------------------------------------------------------------
+/*
 void Analysis::checkEfficiency( const OrderedSeedingHits & candidates)
 {
   typedef  SimTrackContainer::const_iterator IP;
@@ -412,6 +417,7 @@ void Analysis::checkEfficiency( const OrderedSeedingHits & candidates)
     
   }
 }
+*/
 
 
 //----------------------------------------------------------------------------------------

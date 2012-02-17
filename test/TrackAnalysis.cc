@@ -84,11 +84,14 @@ void TrackAnalysis::analyze(
   const SimTrack* myTrack = theAnalysis->bestTrack();
   
   if(myTrack)  Analysis::print(*myTrack);
-  else {
-    std::cout <<" NO MY TRACK!"<<std::endl;
-    return;
-  }
-  Analysis::print( *(theAnalysis->vertex(myTrack)));
+  else { std::cout <<" NO MY TRACK!"<<std::endl; return; }
+
+  const SimVertex * simVertex = theAnalysis->vertex(myTrack);
+  Analysis::print(*simVertex);
+  math::XYZPoint bs(simVertex->position().x(),
+                simVertex->position().y(),
+                simVertex->position().z());
+
   
 //  TrackerHitAssociator assoc(ev, assPset);
 
@@ -102,14 +105,14 @@ void TrackAnalysis::analyze(
   typedef reco::TrackCollection::const_iterator IT;
   for (IT it = tracks.begin(); it !=tracks.end(); ++it) {
     const reco::Track & track = *it;
-    Analysis::print(track);
+    Analysis::print(track,bs);
     hPt->Fill(track.pt());
     hPhi->Fill(track.momentum().phi());
   }
 
 
 //  theAnalysis->init(ev,es,&assoc);
-  theAnalysis->checkEfficiency(tracks);
+//  theAnalysis->checkEfficiency(tracks);
 
 
 }

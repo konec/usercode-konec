@@ -40,8 +40,8 @@ public:
 
   void checkEfficiency(const reco::TrackCollection & tracks);
   void checkEfficiency(const OrderedSeedingHits& candidates);
-  void checkAlgoEfficiency1(const ctfseeding::SeedingLayerSets&, const OrderedSeedingHits& );
-  void checkAlgoEfficiency2(const ctfseeding::SeedingLayerSets&, const OrderedSeedingHits& );
+//  void checkAlgoEfficiency1(const ctfseeding::SeedingLayerSets&, const OrderedSeedingHits& );
+//  void checkAlgoEfficiency2(const ctfseeding::SeedingLayerSets&, const OrderedSeedingHits& );
 
   static void print(const SimTrack & track) ;
   static void print(const SimVertex& vertex); 

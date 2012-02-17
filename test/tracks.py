@@ -1,11 +1,16 @@
 import FWCore.ParameterSet.Config as cms
+import sys
+
 process = cms.Process("Analysis")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(19))
+
 process.source = cms.Source("PoolSource", fileNames =  cms.untracked.vstring( 
-'file:data/Single_TkVpt9_r00_p_nev10000.root',
+#'file:data/Single_TkVpt9_r00_p_nev10000.root',
 #'file:data/Single_TkVpt1.0_r00_m_nev10000.root',
-# 'file:data/Single_TkVpt1.0_r00_p_nev10000.root'
+# '/store/PTB_Param52/Single_TkVpt5_r07_m_nev1000.root'
+# 'file:out.root'
+ '/store/PTB_Param52/Single_TkVpt2.0_r08_m_nev50000.root'
 ))
 
 # import of standard configurations
@@ -18,9 +23,7 @@ process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
-#process.GlobalTag.globaltag = 'GR_R_42_V12::All'
-process.GlobalTag.globaltag = 'MC_42_V12::All'
-#process.GlobalTag.globaltag = 'START42_V12::All'
+process.GlobalTag.globaltag = 'MC_52_V1::All'
 
 #process.load("TrackingTools.MaterialEffects.Propagators_cff")
 
@@ -68,8 +71,8 @@ GBlock= cms.PSet(
 )
 
 
-FitterPSet =  cms.PSet (process.PixelFitterByHelixProjections)
-#FitterPSet =  cms.PSet (process.KFBasedPixelFitter)
+#FitterPSet =  cms.PSet (process.PixelFitterByHelixProjections)
+FitterPSet =  cms.PSet (process.KFBasedPixelFitter)
 #FitterPSet.propagator = cms.string('PropagatorWithMaterial')
 #FitterPSet.propagator = cms.string('PropagatorWithMaterialOpposite')
 #FitterPSet.propagator = cms.string('AnyDirectionAnalyticalPropagator')
@@ -115,10 +118,4 @@ process.analysis = cms.EDAnalyzer("TrackAnalysis",
 )
 
 
-#input_pt10
-#process.p=cms.Path(process.siPixelRecHits*process.pixelTracks*process.analysis)
-
-#input_pt1
 process.p=cms.Path(process.siPixelDigis*process.pixeltrackerlocalreco*process.offlineBeamSpot*process.pixelTracks*process.analysis)
-
-#process.p=cms.Path(process.siPixelDigis*process.pixeltrackerlocalreco*process.offlineBeamSpot*process.pixelTracks*process.pixelVertices*process.analysis)
